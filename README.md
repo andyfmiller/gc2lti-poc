@@ -1,5 +1,5 @@
 # gc2lti-poc
-Proof of concept to use LTI Tools as assignments in Google Classroom.
+The is a proof of concept for using LTI Tools as assignments in Google Classroom.
 
 There are two web applications in this solution: [catalog](https://github.com/andyfmiller/gc2lti-poc/tree/master/catalog) 
 and [gc2lti](https://github.com/andyfmiller/gc2lti-poc/tree/master/gc2lti).
