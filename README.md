@@ -6,7 +6,8 @@ and [gc2lti](https://github.com/andyfmiller/gc2lti-poc/tree/master/gc2lti).
 
 [catalog](https://github.com/andyfmiller/gc2lti-poc/tree/master/catalog) has a simulated catalog-style 
 [page](https://github.com/andyfmiller/gc2lti-poc/blob/master/catalog/Pages/Resource.cshtml) for an LTI 
-Tool that you want to use as an assignment in Google Classroom. There is a Google Classroom share button
+Tool that you want to use as an assignment in Google Classroom. There is a Google 
+[Classroom share button](https://developers.google.com/classroom/guides/sharebutton)
 on the page which shares a link to [gc2lti](https://github.com/andyfmiller/gc2lti-poc/tree/master/gc2lti).
 
 [gc2lti](https://github.com/andyfmiller/gc2lti-poc/tree/master/gc2lti) has a 
