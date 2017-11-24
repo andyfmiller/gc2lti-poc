@@ -92,9 +92,9 @@ namespace gc2lti.Controllers
                         ApplicationName = "Google Classroom to LTI Service"
                     }))
                     {
-                        await FillIntUserAndPersonInfo(cancellationToken, classroomService, ltiRequest);
-                        await FileInResourceInfo(cancellationToken, classroomService, ltiRequest);
-                        await FileInRoleInformation(cancellationToken, classroomService, ltiRequest);
+                        await FillInUserAndPersonInfo(cancellationToken, classroomService, ltiRequest);
+                        await FillInContextAndResourceInfo(cancellationToken, classroomService, ltiRequest);
+                        await FillInContextRoleInfo(cancellationToken, classroomService, ltiRequest);
                     }
 
                     // Get information using Google Directory API
@@ -170,7 +170,7 @@ namespace gc2lti.Controllers
             }
         }
 
-        private static async Task FileInRoleInformation(CancellationToken cancellationToken, ClassroomService classroomService, 
+        private static async Task FillInContextRoleInfo(CancellationToken cancellationToken, ClassroomService classroomService, 
             LtiRequest ltiRequest)
         {
             // Fill in the role information
@@ -189,52 +189,9 @@ namespace gc2lti.Controllers
             }
         }
 
-        private async Task FileInResourceInfo(CancellationToken cancellationToken, ClassroomService classroomService, 
+        private async Task FillInContextAndResourceInfo(CancellationToken cancellationToken, ClassroomService classroomService, 
             LtiRequest ltiRequest)
         {
-            // Fill in the resource (courseWork) information
-            if (!string.IsNullOrEmpty(ltiRequest.ContextId))
-            {
-                var courseWorkRequest = classroomService.Courses.CourseWork.List(ltiRequest.ContextId);
-                ListCourseWorkResponse courseWorkResponse = null;
-                var thisPageUrl = Request.GetDisplayUrl();
-                do
-                {
-                    if (courseWorkResponse != null)
-                    {
-                        courseWorkRequest.PageToken = courseWorkResponse.NextPageToken;
-                    }
-
-                    courseWorkResponse = await courseWorkRequest.ExecuteAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                    var courseWorkItem = courseWorkResponse.CourseWork?.FirstOrDefault(w =>
-                        w.Materials.FirstOrDefault(m => m.Link.Url.Equals(thisPageUrl)) !=
-                        null);
-                    if (courseWorkItem != null)
-                    {
-                        ltiRequest.ResourceLinkId = courseWorkItem.Id;
-                        ltiRequest.ResourceLinkTitle = courseWorkItem.Title;
-                        ltiRequest.ResourceLinkDescription = courseWorkItem.Description;
-                    }
-                } while (string.IsNullOrEmpty(ltiRequest.ResourceLinkId) &&
-                         !string.IsNullOrEmpty(courseWorkResponse.NextPageToken));
-            }
-        }
-
-        private async Task FillIntUserAndPersonInfo(CancellationToken cancellationToken, ClassroomService classroomService,
-            LtiRequest ltiRequest)
-        {
-            // Fill in basic user and person information
-            var profile = await classroomService.UserProfiles.Get("me").ExecuteAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            ltiRequest.UserId = profile.Id;
-            ltiRequest.LisPersonEmailPrimary = profile.EmailAddress;
-            ltiRequest.LisPersonNameFamily = profile.Name.FamilyName;
-            ltiRequest.LisPersonNameFull = profile.Name.FullName;
-            ltiRequest.LisPersonNameGiven = profile.Name.GivenName;
-            ltiRequest.UserImage = profile.PhotoUrl;
-
             // Fill in the context (course) information
             if (AlternateCourseIdForSession != null)
             {
@@ -270,6 +227,49 @@ namespace gc2lti.Controllers
                     }
                 } while (string.IsNullOrEmpty(ltiRequest.ContextId) && !string.IsNullOrEmpty(coursesResponse.NextPageToken));
             }
+
+            // Fill in the resource (courseWork) information
+            if (!string.IsNullOrEmpty(ltiRequest.ContextId))
+            {
+                var courseWorkRequest = classroomService.Courses.CourseWork.List(ltiRequest.ContextId);
+                ListCourseWorkResponse courseWorkResponse = null;
+                var thisPageUrl = Request.GetDisplayUrl();
+                do
+                {
+                    if (courseWorkResponse != null)
+                    {
+                        courseWorkRequest.PageToken = courseWorkResponse.NextPageToken;
+                    }
+
+                    courseWorkResponse = await courseWorkRequest.ExecuteAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    var courseWorkItem = courseWorkResponse.CourseWork?.FirstOrDefault(w =>
+                        w.Materials.FirstOrDefault(m => m.Link.Url.Equals(thisPageUrl)) !=
+                        null);
+                    if (courseWorkItem != null)
+                    {
+                        ltiRequest.ResourceLinkId = courseWorkItem.Id;
+                        ltiRequest.ResourceLinkTitle = courseWorkItem.Title;
+                        ltiRequest.ResourceLinkDescription = courseWorkItem.Description;
+                    }
+                } while (string.IsNullOrEmpty(ltiRequest.ResourceLinkId) &&
+                         !string.IsNullOrEmpty(courseWorkResponse.NextPageToken));
+            }
+        }
+
+        private async Task FillInUserAndPersonInfo(CancellationToken cancellationToken, ClassroomService classroomService,
+            LtiRequest ltiRequest)
+        {
+            // Fill in basic user and person information
+            var profile = await classroomService.UserProfiles.Get("me").ExecuteAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            ltiRequest.UserId = profile.Id;
+            ltiRequest.LisPersonEmailPrimary = profile.EmailAddress;
+            ltiRequest.LisPersonNameFamily = profile.Name.FamilyName;
+            ltiRequest.LisPersonNameFull = profile.Name.FullName;
+            ltiRequest.LisPersonNameGiven = profile.Name.GivenName;
+            ltiRequest.UserImage = profile.PhotoUrl;
         }
 
         private string AlternateCourseIdForSession
