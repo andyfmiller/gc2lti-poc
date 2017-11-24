@@ -1,0 +1,16 @@
+﻿@page
+@model ResourceModel
+@{
+    ViewData["Title"] = "Resource";
+}
+
+<h2>LTI Tool</h2>
+
+<div class="g-sharetoclassroom" data-size="32" data-url="@Model.ShareUrl"></div>    
+
+<p>This is the catalog description page for the LTI Tool.</p>
+
+@section Scripts {
+    <script src="https://apis.google.com/js/platform.js"></script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

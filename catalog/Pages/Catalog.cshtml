@@ -1,0 +1,15 @@
+﻿@page
+@model CatalogModel
+@{
+    ViewData["Title"] = "Catalog";
+}
+
+<h2>Catalog</h2>
+<dl>
+    <dt><a asp-page="/Resource">Resource</a></dt>
+    <dd>This is the one and only resource in this learning object repository.</dd>
+</dl>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
