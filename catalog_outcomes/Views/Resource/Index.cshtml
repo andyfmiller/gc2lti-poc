@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "Resource";
+}
+
+<h2>Resource</h2>
+
+<dl>
+    <dt>Title</dt>
+    <dd>Counting Raindrops</dd>
+    <dt>Description</dt>
+    <dd>Lesson covers estimation.</dd>
+</dl>
+
+<div class="vertical-spacing">
+    <a id="share" href="Share" title="Share to Classroom"
+       onclick="share('https://lti.tools/test/tp.php', 'Counting Raindrops', 'Lesson covers estimation.'); return false;">
+        <img src="images/32x32_yellow_stroke_icon@1x.png" />
+    </a>
+    <span>Share to Classroom</span>
+</div>
+
+@section Scripts {
+    
+    <script type="text/javascript">
+        function share(shareUrl, title, description) {
+            window.open("Share"
+                + "?url=" + encodeURI(shareUrl)
+                + "&title=" + title
+                + "&description=" + description, 
+                "_blank",
+                "toolbar=no,width=640,height=400,left=100,top=100");
+            return false;
+        }
+    </script>
+
+}
+

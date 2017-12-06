@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Admin.Directory.directory_v1" Version="1.30.0.1047" />
+    <PackageReference Include="Google.Apis.Classroom.v1" Version="1.30.0.1068" />
+    <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\google-api-dotnet-client\Src\Support\Google.Apis.Auth.AspMvcCore\Google.Apis.Auth.AspMvcCore.csproj" />
+  </ItemGroup>
+
+</Project>

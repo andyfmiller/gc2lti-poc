@@ -1,0 +1,44 @@
+﻿@model ShareAssignModel
+@{
+    ViewBag.Title = "Share to Classroom";
+    Layout = "_Layout";
+}
+
+<img class="center-block vertical-spacing" src="images/32x32_yellow_stroke_icon@1x.png" />
+<div class="text-center vertical-spacing">Share to Classroom</div>
+@using (Html.BeginForm("Confirm", "Share", FormMethod.Get))
+{
+    @Html.Hidden("url", Model.Url)
+    @Html.Hidden("title", Model.Title)
+    @Html.Hidden("description", Model.Description)
+
+    <div class="form-group text-center vertical-spacing">
+        @Html.DropDownList("courseId", Model.CoursesList, "Choose class", new
+   {
+       @classs = "form-control",
+       onChange = "toggleSubmit()"
+   })
+    </div>
+
+    <div class="form-group text-right vertical-spacing">
+        <button id="submit" type="submit" class="btn btn-primary disabled" disabled="disabled">Go</button>
+    </div>
+}
+
+@section Scripts {
+
+    <script type="text/javascript">
+
+        function toggleSubmit() {
+            var submit = $("#submit");
+            if ($("#courseId").val() == "") {
+                submit.addClass("disabled");
+                submit.attr("disabled", "disabled");
+            } else {
+                submit.removeClass("disabled");
+                submit.removeAttr("disabled");
+            }
+        }
+
+    </script>
+}

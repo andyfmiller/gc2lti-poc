@@ -1,0 +1,39 @@
+﻿@model ShareConfirmModel
+@{
+    ViewData["Title"] = "Confirm";
+}
+
+@using (Html.BeginForm("Assign", "Share", FormMethod.Get))
+{
+    @Html.HiddenFor(m => m.CourseId)
+    @Html.HiddenFor(m => m.Url)
+
+    <div class="panel">
+        <div class="form-group form-horizontal">
+            <label for="courseName">For</label>
+            <span id="courseName">@Model.CourseName</span>
+            <span>- All students</span>
+        </div>
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input id="title" name="title" type="text" class="form-control" value="@Model.Title" />
+        </div>
+        <div class="form-group">
+            <label for="description">Instructions (optional)</label>
+            <textarea id="description" name="description" class="form-control">@Model.Description</textarea>
+        </div>
+        <div class="form-group form-horizontal">
+            <label for="due">Due</label>
+            <span id="due">No due date</span>
+            <label for="topic">Topic</label>
+            <span id="topic">No topic</span>
+        </div>
+        <div class="form-group">
+            <label for="link">Link</label><br/>
+            <span id="link" class="text-nowrap">@Model.Url</span>
+        </div>
+        <div class="form-group text-right">
+            <button id="submit" type="submit" class="btn btn-primary">Assign</button>
+        </div>
+    </div>
+}
