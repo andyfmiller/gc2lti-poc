@@ -43,7 +43,7 @@ namespace catalog_outcomes.Controllers
         }
 
         /// <summary>
-        /// Collect the courseId
+        /// 1. Collect the courseId
         /// </summary>
         public async Task<IActionResult> Index(CancellationToken cancellationToken, string url, string title, string description)
         {
@@ -58,6 +58,13 @@ namespace catalog_outcomes.Controllers
 
             try
             {
+                var model = new ShareAssignModel
+                {
+                    Url = url,
+                    Title = title,
+                    Description = description
+                };
+
                 // List the teacher's courses
                 using (var classroomService = new ClassroomService(new BaseClientService.Initializer
                 {
@@ -70,41 +77,43 @@ namespace catalog_outcomes.Controllers
                     // offline use. This is the TokenResponse to use for sending grades back.
                     // Keep track of the UserId so we can look up the TokenResponse later.
 
-                    if (result.Credential.Token.RefreshToken != null)
+                    var userProfileRequest = classroomService.UserProfiles.Get("me");
+                    var userProfile =
+                        await userProfileRequest.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+                    var googleUser = await _db.GoogleUsers
+                        .FindAsync(new object[] { userProfile.Id }, cancellationToken).ConfigureAwait(false);
+
+                    if (googleUser == null)
                     {
-                        var userProfileRequest = classroomService.UserProfiles.Get("me");
-                        var userProfile =
-                            await userProfileRequest.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-                        var googleUser = await _db.GoogleUsers
-                            .FindAsync(new object[] {userProfile.Id}, cancellationToken).ConfigureAwait(false);
-                        if (googleUser == null)
+                        // If we don't have an offline Token, force a login and acceptance
+                        if (string.IsNullOrEmpty(result.Credential.Token.RefreshToken))
                         {
-                            googleUser = new GoogleUser
-                            {
-                                GoogleId = userProfile.Id,
-                                UserId = result.Credential.UserId
-                            };
-                            await _db.AddAsync(googleUser, cancellationToken).ConfigureAwait(false);
-                            await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                            await result.Credential.RevokeTokenAsync(cancellationToken).ConfigureAwait(false);
+                            return RedirectToAction("Index", model);
                         }
-                        else if (!googleUser.UserId.Equals(result.Credential.UserId,
-                            StringComparison.InvariantCultureIgnoreCase))
+
+                        // Otherwise record a reference to the token
+                        googleUser = new GoogleUser
                         {
-                            googleUser.UserId = result.Credential.UserId;
-                            _db.Update(googleUser);
-                            await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                        }
+                            GoogleId = userProfile.Id,
+                            UserId = result.Credential.UserId
+                        };
+                        await _db.AddAsync(googleUser, cancellationToken).ConfigureAwait(false);
+                        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                    // If there is a matching GoogleUser with a new Token, record it
+                    else if (!googleUser.UserId.Equals(result.Credential.UserId,
+                        StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        googleUser.UserId = result.Credential.UserId;
+                        _db.Update(googleUser);
+                        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                     }
 
-                    var model = new ShareAssignModel
-                    {
-                        Url = url,
-                        Title = title,
-                        Description = description
-                    };
-
+                    // Get a list of my courses
                     var coursesRequest = classroomService.Courses.List();
                     coursesRequest.CourseStates = CoursesResource.ListRequest.CourseStatesEnum.ACTIVE;
+                    coursesRequest.TeacherId = "me";
                     ListCoursesResponse coursesResponse = null;
                     do
                     {
@@ -127,6 +136,18 @@ namespace catalog_outcomes.Controllers
                     return View(model);
                 }
             }
+            catch (GoogleApiException e) when (e.Message.Contains("invalid authentication credentials"))
+            {
+                // "Logout the user" and force new authorization
+                TempData.Remove("user");
+                var model = new ShareAssignModel
+                {
+                    Description = description,
+                    Title = title,
+                    Url = url
+                };
+                return RedirectToAction("Index", model);
+            }
             catch (TokenResponseException e) when (e.Message.Contains("invalid_grant"))
             {
                 // "Logout the user" and force new authorization
@@ -146,7 +167,7 @@ namespace catalog_outcomes.Controllers
         }
 
         /// <summary>
-        /// Confirm the title and instructions.
+        /// 2. Confirm the title, description, tool url, and max points
         /// </summary>
         public async Task<IActionResult> Confirm(CancellationToken cancellationToken, 
             string courseId, string url, string title, string description)
@@ -187,7 +208,7 @@ namespace catalog_outcomes.Controllers
         }
 
         /// <summary>
-        /// Assign the item
+        /// 3. Create the assignment
         /// </summary>
         public async Task<IActionResult> Assign(CancellationToken cancellationToken, 
             string courseId, string url, string title, string description, int maxPoints)
@@ -206,11 +227,7 @@ namespace catalog_outcomes.Controllers
                 }))
                 {
                     var nonce = CalculateNonce(8);
-                    var linkUrl =
-                        Request.HttpContext.Connection.RemoteIpAddress == null
-                        || Request.HttpContext.Connection.LocalIpAddress == null
-                        || Request.HttpContext.Connection.RemoteIpAddress.Equals(Request.HttpContext.Connection.LocalIpAddress)
-                        || IPAddress.IsLoopback(Request.HttpContext.Connection.RemoteIpAddress)
+                    var linkUrl = IsRequestLocal()
                             ? $"{_configuration["Localhost"]}/gc2lti/{nonce}?url={url}&c={courseId}"
                             : $"{_configuration["Remotehost"]}/gc2lti/{nonce}?url={url}&c={courseId}";
                     var courseWork = new CourseWork
@@ -245,18 +262,13 @@ namespace catalog_outcomes.Controllers
             }
         }
 
-        // Return a nonce to differentiate assignments with the same URL within a course
-        private string CalculateNonce(int length)
-        {
-            const string allowableCharacters = "abcdefghijklmnopqrstuvwxyz0123456789";
-            var bytes = new byte[length];
-            using (var random = RandomNumberGenerator.Create())
-            {
-                random.GetBytes(bytes);
-            }
-            return new string(bytes.Select(x => allowableCharacters[x % allowableCharacters.Length]).ToArray());
-        }
-
+        /// <summary>
+        /// 4. Display results with link to view the course
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <param name="courseId"></param>
+        /// <param name="courseWorkId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> View(CancellationToken cancellationToken, string courseId, string courseWorkId)
         {
             var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _db);
@@ -289,6 +301,26 @@ namespace catalog_outcomes.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, e);
             }
+        }
+
+        private bool IsRequestLocal()
+        {
+            return Request.HttpContext.Connection.RemoteIpAddress == null
+                   || Request.HttpContext.Connection.LocalIpAddress == null
+                   || Request.HttpContext.Connection.RemoteIpAddress.Equals(Request.HttpContext.Connection.LocalIpAddress)
+                   || IPAddress.IsLoopback(Request.HttpContext.Connection.RemoteIpAddress);
+        }
+
+        // Return a nonce to differentiate assignments with the same URL within a course
+        private string CalculateNonce(int length)
+        {
+            const string allowableCharacters = "abcdefghijklmnopqrstuvwxyz0123456789";
+            var bytes = new byte[length];
+            using (var random = RandomNumberGenerator.Create())
+            {
+                random.GetBytes(bytes);
+            }
+            return new string(bytes.Select(x => allowableCharacters[x % allowableCharacters.Length]).ToArray());
         }
     }
 }
