@@ -12,7 +12,6 @@ using Google.Apis.Classroom.v1;
 using Google.Apis.Classroom.v1.Data;
 using Google.Apis.Services;
 using LtiLibrary.NetCore.Common;
-using LtiLibrary.NetCore.Extensions;
 using LtiLibrary.NetCore.Lis.v1;
 using LtiLibrary.NetCore.Lti.v1;
 using Microsoft.AspNetCore.Http;
@@ -38,24 +37,10 @@ namespace gc2lti_outcomes.Controllers
         /// <summary>
         /// Converts a simple GET request from Google Classroom into an LTI request
         /// </summary>
-        /// <param name="cancellationToken">Cancellation token to cancel an operation.</param>
-        /// <param name="url">The LTI request will be POSTed to this URL.</param>
-        /// <returns>
-        /// Initially returns a <see cref="RedirectResult"/> to authorize Google API usage,
-        /// then to POST the LTI request.
-        /// </returns>
         [HttpGet("{nonce?}")]
-        public async Task<ActionResult> Index(CancellationToken cancellationToken, string url)
+        public async Task<ActionResult> Index(CancellationToken cancellationToken, string url, string c)
         {
-            if (!Request.IsHttps)
-            {
-                return BadRequest("SSL is required.");
-            }
-            if (IsRequestFromGoogleClassroom())
-            {
-                AlternateCourseIdForSession = GetAlternateCourseIdFromRequest();
-            }
-            else if (IsRequestFromWebPageThumbnail())
+            if (IsRequestFromWebPageThumbnail())
             {
                 return View("Thumbnail");
             }
@@ -67,68 +52,72 @@ namespace gc2lti_outcomes.Controllers
                 .AuthorizeAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            if (result.Credential != null)
+            if (result.Credential == null)
             {
-                // Check paramter
-                if (string.IsNullOrEmpty(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
-                {
-                    return BadRequest("Missing tool URL.");
-                }
-
-                // Start LTI request
-                var ltiRequest =
-                    new LtiRequest(LtiConstants.BasicLaunchLtiMessageType)
-                    {
-                        // Let the tool know this LTI request is coming from Google Classroom
-                        ToolConsumerInfoProductFamilyCode = "google-classroom",
-
-                        // Google Classroom always launches links in a new tab/window
-                        LaunchPresentationDocumentTarget = DocumentTarget.window,
-
-                        // The LTI request will be posted to the URL in the link
-                        Url = uri
-                    };
-
-                try
-                {
-                    // Get information using Google Classroom API
-                    using (var classroomService = new ClassroomService(new BaseClientService.Initializer
-                    {
-                        HttpClientInitializer = result.Credential,
-                        ApplicationName = "Google Classroom to LTI Service"
-                    }))
-                    {
-                        await FillInUserAndPersonInfo(cancellationToken, classroomService, ltiRequest);
-                        await FillInContextInfo(cancellationToken, classroomService, ltiRequest);
-                        await FillInContextRoleInfo(cancellationToken, classroomService, ltiRequest);
-                        await FillInResourceAndOutcomesInfo(cancellationToken, classroomService, ltiRequest);
-                    }
-
-                    // Get information using Google Directory API
-                    using (var directoryService = new DirectoryService(new BaseClientService.Initializer
-                    {
-                        HttpClientInitializer = result.Credential,
-                        ApplicationName = "Google Classroom to LTI Service"
-                    }))
-                    {
-                        await FillInPersonSyncInfo(cancellationToken, directoryService, ltiRequest);
-                    }
-                }
-                catch (Exception e)
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError, e);
-                }
-
-                // Based on the data collected from Google, look up the correct key and secret
-                ltiRequest.ConsumerKey = "12345";
-                var oauthSecret = "secret";
-
-                // Sign the request
-                ltiRequest.Signature = ltiRequest.SubstituteCustomVariablesAndGenerateSignature(oauthSecret);
-
-                return View(ltiRequest);
+                return Redirect(result.RedirectUri);
             }
-            return Redirect(result.RedirectUri);
+
+            // Check paramter
+            if (string.IsNullOrEmpty(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                return BadRequest("Missing tool URL.");
+            }
+
+            // Start LTI request
+            var ltiRequest =
+                new LtiRequest(LtiConstants.BasicLaunchLtiMessageType)
+                {
+                    // Let the tool know this LTI request is coming from Google Classroom
+                    ToolConsumerInfoProductFamilyCode = "google-classroom",
+
+                    // Google Classroom always launches links in a new tab/window
+                    LaunchPresentationDocumentTarget = DocumentTarget.window,
+
+                    // The LTI request will be posted to the URL in the link
+                    Url = uri,
+
+                    // The ContextId is in the request
+                    ContextId = c
+                };
+
+            try
+            {
+                // Get information using Google Classroom API
+                using (var classroomService = new ClassroomService(new BaseClientService.Initializer
+                {
+                    HttpClientInitializer = result.Credential,
+                    ApplicationName = "Google Classroom to LTI Service"
+                }))
+                {
+                    await FillInUserAndPersonInfo(cancellationToken, classroomService, ltiRequest);
+                    await FillInContextInfo(cancellationToken, classroomService, ltiRequest);
+                    await FillInContextRoleInfo(cancellationToken, classroomService, ltiRequest);
+                    await FillInResourceAndOutcomesInfo(cancellationToken, classroomService, ltiRequest);
+                }
+
+                // Get information using Google Directory API
+                using (var directoryService = new DirectoryService(new BaseClientService.Initializer
+                {
+                    HttpClientInitializer = result.Credential,
+                    ApplicationName = "Google Classroom to LTI Service"
+                }))
+                {
+                    await FillInPersonSyncInfo(cancellationToken, directoryService, ltiRequest);
+                }
+            }
+            catch (Exception e)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, e);
+            }
+
+            // Based on the data collected from Google, look up the correct key and secret
+            ltiRequest.ConsumerKey = "12345";
+            var oauthSecret = "secret";
+
+            // Sign the request
+            ltiRequest.Signature = ltiRequest.SubstituteCustomVariablesAndGenerateSignature(oauthSecret);
+
+            return View(ltiRequest);
         }
 
         #region Private Methods
@@ -200,39 +189,15 @@ namespace gc2lti_outcomes.Controllers
             LtiRequest ltiRequest)
         {
             // Fill in the context (course) information
-            if (AlternateCourseIdForSession != null)
+            if (!string.IsNullOrEmpty(ltiRequest.ContextId))
             {
-                var coursesRequest = classroomService.Courses.List();
-                coursesRequest.CourseStates = CoursesResource.ListRequest.CourseStatesEnum.ACTIVE;
-                ListCoursesResponse coursesResponse = null;
-                do
-                {
-                    if (coursesResponse != null)
-                    {
-                        coursesRequest.PageToken = coursesResponse.NextPageToken;
-                    }
-
-                    coursesResponse = await coursesRequest.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-                    if (coursesResponse.Courses != null)
-                    {
-                        foreach (var course in coursesResponse.Courses)
-                        {
-                            if (Uri.TryCreate(course.AlternateLink, UriKind.Absolute,
-                                out var alternateLink))
-                            {
-                                var alternateCourseIdFromList =
-                                    alternateLink.Segments[alternateLink.Segments.Length - 1];
-                                if (alternateCourseIdFromList.Equals(AlternateCourseIdForSession))
-                                {
-                                    ltiRequest.ContextId = course.Id;
-                                    ltiRequest.ContextTitle = course.Name;
-                                    ltiRequest.ContextType = ContextType.CourseSection;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                } while (string.IsNullOrEmpty(ltiRequest.ContextId) && !string.IsNullOrEmpty(coursesResponse.NextPageToken));
+                var courseRequest = classroomService.Courses.Get(ltiRequest.ContextId);
+                var course = await courseRequest.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+                if (course != null)
+                { 
+                    ltiRequest.ContextTitle = course.Name;
+                    ltiRequest.ContextType = ContextType.CourseSection;
+                }
             }
         }
 
@@ -265,22 +230,25 @@ namespace gc2lti_outcomes.Controllers
 
                         // If we have the AuthToken and RefreshToken for the user that created the 
                         // CourseWork, then accept outcomes
-
-                        var googleUser = await _context.GoogleUsers
-                            .FindAsync(new object[] {courseWork.CreatorUserId}, cancellationToken)
-                            .ConfigureAwait(false);
-                        if (googleUser != null)
+                        if (courseWork.AssociatedWithDeveloper.HasValue && courseWork.AssociatedWithDeveloper.Value)
                         {
-                            ltiRequest.LisOutcomeServiceUrl = new Uri($"{Request.Scheme}://{Request.Host}/outcomes").ToString();
-
-                            var lisResultSourcedId = new LisResultSourcedId
+                            var googleUser = await _context.GoogleUsers
+                                .FindAsync(new object[] {courseWork.CreatorUserId}, cancellationToken)
+                                .ConfigureAwait(false);
+                            if (googleUser != null)
                             {
-                                CourseId = ltiRequest.ContextId,
-                                CourseWorkId = ltiRequest.ResourceLinkId,
-                                UserId = courseWork.CreatorUserId
-                            };
-                            ltiRequest.LisResultSourcedId =
-                                JsonConvert.SerializeObject(lisResultSourcedId, Formatting.None);
+                                ltiRequest.LisOutcomeServiceUrl =
+                                    new Uri($"{Request.Scheme}://{Request.Host}/outcomes").ToString();
+
+                                var lisResultSourcedId = new LisResultSourcedId
+                                {
+                                    CourseId = ltiRequest.ContextId,
+                                    CourseWorkId = ltiRequest.ResourceLinkId,
+                                    UserId = courseWork.CreatorUserId
+                                };
+                                ltiRequest.LisResultSourcedId =
+                                    JsonConvert.SerializeObject(lisResultSourcedId, Formatting.None);
+                            }
                         }
                     }
                 } while (string.IsNullOrEmpty(ltiRequest.ResourceLinkId) &&
@@ -301,32 +269,6 @@ namespace gc2lti_outcomes.Controllers
             ltiRequest.LisPersonNameFull = profile.Name.FullName;
             ltiRequest.LisPersonNameGiven = profile.Name.GivenName;
             ltiRequest.UserImage = profile.PhotoUrl;
-        }
-
-        private string AlternateCourseIdForSession
-        {
-            get { return TempData["AlternateCourseId"]?.ToString(); }
-            set { TempData["AlternateCourseId"] = value; }
-        }
-
-        private string GetAlternateCourseIdFromRequest()
-        {
-            var referer = Request.Headers["Referer"];
-            var refererUri = new Uri(referer, UriKind.Absolute);
-            return refererUri.Segments[refererUri.Segments.Length - 1];
-        }
-
-        private bool IsRequestFromGoogleClassroom()
-        {
-            if (!Request.Headers.TryGetValue("Referer", out var referer))
-            {
-                return false;
-            }
-            if (!Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
-            {
-                return false;
-            }
-            return refererUri.Host.Equals("classroom.google.com");
         }
 
         private bool IsRequestFromWebPageThumbnail()

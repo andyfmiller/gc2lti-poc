@@ -2,27 +2,30 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-public class ShareAssignModel
+namespace catalog_outcomes.Models
 {
-    public IDictionary<string, string> Courses { get; }
-    public string Url { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-
-    public SelectList CoursesList
+    public class ShareAssignModel
     {
-        get
+        public IDictionary<string, string> Courses { get; }
+        public string Url { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+
+        public SelectList CoursesList
         {
-            return new SelectList(
-                Courses.Select(c => new { Value = c.Key, Text = c.Value }),
-                "Value",
-                "Text"
-            );
+            get
+            {
+                return new SelectList(
+                    Courses.Select(c => new { Value = c.Key, Text = c.Value }),
+                    "Value",
+                    "Text"
+                );
+            }
         }
-    }
 
-    public ShareAssignModel()
-    {
-        Courses = new Dictionary<string, string>();
+        public ShareAssignModel()
+        {
+            Courses = new Dictionary<string, string>();
+        }
     }
 }

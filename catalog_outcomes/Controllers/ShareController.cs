@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using catalog_outcomes.Models;
 using gc2lti_shared.Data;
 using gc2lti_shared.Models;
+using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.AspMvcCore;
+using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Classroom.v1;
 using Google.Apis.Classroom.v1.Data;
 using Google.Apis.Services;
@@ -21,7 +24,7 @@ namespace catalog_outcomes.Controllers
     public class ShareController : Controller
     {
         private readonly IConfiguration _configuration;
-        private readonly Gc2LtiDbContext _context;
+        private readonly Gc2LtiDbContext _db;
 
         private string ClientId
         {
@@ -33,10 +36,10 @@ namespace catalog_outcomes.Controllers
             get {  return _configuration["Authentication:Google:ClientSecret"]; }
         }
 
-        public ShareController(IConfiguration config, Gc2LtiDbContext context)
+        public ShareController(IConfiguration config, Gc2LtiDbContext db)
         {
             _configuration = config;
-            _context = context;
+            _db = db;
         }
 
         /// <summary>
@@ -44,7 +47,7 @@ namespace catalog_outcomes.Controllers
         /// </summary>
         public async Task<IActionResult> Index(CancellationToken cancellationToken, string url, string title, string description)
         {
-            var result = await new AuthorizationCodeMvcApp(this, new AppFlowMetadata(ClientId, ClientSecret, _context))
+            var result = await new AuthorizationCodeMvcApp(this, new AppFlowMetadata(ClientId, ClientSecret, _db))
                 .AuthorizeAsync(cancellationToken)
                 .ConfigureAwait(false);
 
@@ -72,8 +75,8 @@ namespace catalog_outcomes.Controllers
                         var userProfileRequest = classroomService.UserProfiles.Get("me");
                         var userProfile =
                             await userProfileRequest.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-                        var googleUser = await _context.GoogleUsers
-                            .FindAsync(new object[] { userProfile.Id }, cancellationToken).ConfigureAwait(false);
+                        var googleUser = await _db.GoogleUsers
+                            .FindAsync(new object[] {userProfile.Id}, cancellationToken).ConfigureAwait(false);
                         if (googleUser == null)
                         {
                             googleUser = new GoogleUser
@@ -81,14 +84,15 @@ namespace catalog_outcomes.Controllers
                                 GoogleId = userProfile.Id,
                                 UserId = result.Credential.UserId
                             };
-                            await _context.AddAsync(googleUser, cancellationToken).ConfigureAwait(false);
-                            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                            await _db.AddAsync(googleUser, cancellationToken).ConfigureAwait(false);
+                            await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                         }
-                        else if (!googleUser.UserId.Equals(result.Credential.UserId, StringComparison.InvariantCultureIgnoreCase))
+                        else if (!googleUser.UserId.Equals(result.Credential.UserId,
+                            StringComparison.InvariantCultureIgnoreCase))
                         {
                             googleUser.UserId = result.Credential.UserId;
-                            _context.Update(googleUser);
-                            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                            _db.Update(googleUser);
+                            await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                         }
                     }
 
@@ -123,6 +127,18 @@ namespace catalog_outcomes.Controllers
                     return View(model);
                 }
             }
+            catch (TokenResponseException e) when (e.Message.Contains("invalid_grant"))
+            {
+                // "Logout the user" and force new authorization
+                TempData.Remove("user");
+                var model = new ShareAssignModel
+                {
+                    Description = description,
+                    Title = title,
+                    Url = url
+                };
+                return RedirectToAction("Index", model);
+            }
             catch (Exception e)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, e);
@@ -135,13 +151,12 @@ namespace catalog_outcomes.Controllers
         public async Task<IActionResult> Confirm(CancellationToken cancellationToken, 
             string courseId, string url, string title, string description)
         {
-            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _context);
+            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _db);
             var token = await appFlow.Flow.LoadTokenAsync(appFlow.GetUserId(this), cancellationToken);
             var credential = new UserCredential(appFlow.Flow, appFlow.GetUserId(this), token);
 
             try
             {
-
                 // Get the course name
                 using (var classroomService = new ClassroomService(new BaseClientService.Initializer
                 {
@@ -157,8 +172,9 @@ namespace catalog_outcomes.Controllers
                         CourseId = courseId,
                         CourseName = response.Name,
                         Description = description,
+                        MaxPoints = 100,
+                        Title = title,
                         Url = url,
-                        Title = title
                     };
 
                     return View(model);
@@ -174,9 +190,9 @@ namespace catalog_outcomes.Controllers
         /// Assign the item
         /// </summary>
         public async Task<IActionResult> Assign(CancellationToken cancellationToken, 
-            string courseId, string url, string title, string description)
+            string courseId, string url, string title, string description, int maxPoints)
         {
-            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _context);
+            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _db);
             var token = await appFlow.Flow.LoadTokenAsync(appFlow.GetUserId(this), cancellationToken);
             var credential = new UserCredential(appFlow.Flow, appFlow.GetUserId(this), token);
 
@@ -190,12 +206,18 @@ namespace catalog_outcomes.Controllers
                 }))
                 {
                     var nonce = CalculateNonce(8);
-                    var linkUrl = new UriBuilder($"https://localhost:44319/gc2lti/{nonce}?url={url}&c={courseId}");
+                    var linkUrl =
+                        Request.HttpContext.Connection.RemoteIpAddress == null
+                        || Request.HttpContext.Connection.LocalIpAddress == null
+                        || Request.HttpContext.Connection.RemoteIpAddress.Equals(Request.HttpContext.Connection.LocalIpAddress)
+                        || IPAddress.IsLoopback(Request.HttpContext.Connection.RemoteIpAddress)
+                            ? $"{_configuration["Localhost"]}/gc2lti/{nonce}?url={url}&c={courseId}"
+                            : $"{_configuration["Remotehost"]}/gc2lti/{nonce}?url={url}&c={courseId}";
                     var courseWork = new CourseWork
                     {
                         Title = title,
                         Description = description,
-                        MaxPoints = 100,
+                        MaxPoints = maxPoints,
                         WorkType = "ASSIGNMENT",
                         Materials = new List<Material>()
                         {
@@ -204,7 +226,7 @@ namespace catalog_outcomes.Controllers
                                 Link = new Link()
                                 {
                                     Title = title,
-                                    Url = linkUrl.Uri.AbsoluteUri
+                                    Url = linkUrl
                                 }
                             }
                         },
@@ -237,7 +259,7 @@ namespace catalog_outcomes.Controllers
 
         public async Task<IActionResult> View(CancellationToken cancellationToken, string courseId, string courseWorkId)
         {
-            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _context);
+            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _db);
             var token = await appFlow.Flow.LoadTokenAsync(appFlow.GetUserId(this), cancellationToken);
             var credential = new UserCredential(appFlow.Flow, appFlow.GetUserId(this), token);
 

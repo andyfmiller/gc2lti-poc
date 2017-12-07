@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace catalog_outcomes.Models
+﻿namespace catalog_outcomes.Models
 {
     public class ShareViewModel
     {
