@@ -12,6 +12,7 @@ using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.AspMvcCore;
 using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Auth.OAuth2.Web;
 using Google.Apis.Classroom.v1;
 using Google.Apis.Classroom.v1.Data;
 using Google.Apis.Services;
@@ -56,15 +57,15 @@ namespace catalog_outcomes.Controllers
                 return Redirect(result.RedirectUri);
             }
 
+            var model = new ShareAssignModel
+            {
+                Url = url,
+                Title = title,
+                Description = description
+            };
+
             try
             {
-                var model = new ShareAssignModel
-                {
-                    Url = url,
-                    Title = title,
-                    Description = description
-                };
-
                 // List the teacher's courses
                 using (var classroomService = new ClassroomService(new BaseClientService.Initializer
                 {
@@ -72,45 +73,12 @@ namespace catalog_outcomes.Controllers
                     ApplicationName = "Google Classroom to LTI Service"
                 }))
                 {
-                    // If the Google User was prompted to agree to the permissions, then
-                    // the TokenResponse will include a RefreshToken which is suitable for
-                    // offline use. This is the TokenResponse to use for sending grades back.
-                    // Keep track of the UserId so we can look up the TokenResponse later.
-
-                    var userProfileRequest = classroomService.UserProfiles.Get("me");
-                    var userProfile =
-                        await userProfileRequest.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-                    var googleUser = await _db.GoogleUsers
-                        .FindAsync(new object[] { userProfile.Id }, cancellationToken).ConfigureAwait(false);
-
-                    if (googleUser == null)
+                    if (!await SaveOfflineToken(cancellationToken, classroomService, result))
                     {
-                        // If we don't have an offline Token, force a login and acceptance
-                        if (string.IsNullOrEmpty(result.Credential.Token.RefreshToken))
-                        {
-                            await result.Credential.RevokeTokenAsync(cancellationToken).ConfigureAwait(false);
-                            return RedirectToAction("Index", model);
-                        }
-
-                        // Otherwise record a reference to the token
-                        googleUser = new GoogleUser
-                        {
-                            GoogleId = userProfile.Id,
-                            UserId = result.Credential.UserId
-                        };
-                        await _db.AddAsync(googleUser, cancellationToken).ConfigureAwait(false);
-                        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-                    }
-                    // If there is a matching GoogleUser with a new Token, record it
-                    else if (!googleUser.UserId.Equals(result.Credential.UserId,
-                        StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        googleUser.UserId = result.Credential.UserId;
-                        _db.Update(googleUser);
-                        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                        return RedirectToAction("Index", model);
                     }
 
-                    // Get a list of my courses
+                    // Fill in the view model with a list of my courses
                     var coursesRequest = classroomService.Courses.List();
                     coursesRequest.CourseStates = CoursesResource.ListRequest.CourseStatesEnum.ACTIVE;
                     coursesRequest.TeacherId = "me";
@@ -138,32 +106,65 @@ namespace catalog_outcomes.Controllers
             }
             catch (GoogleApiException e) when (e.Message.Contains("invalid authentication credentials"))
             {
-                // "Logout the user" and force new authorization
+                // Force a new UserId
                 TempData.Remove("user");
-                var model = new ShareAssignModel
-                {
-                    Description = description,
-                    Title = title,
-                    Url = url
-                };
                 return RedirectToAction("Index", model);
             }
             catch (TokenResponseException e) when (e.Message.Contains("invalid_grant"))
             {
-                // "Logout the user" and force new authorization
+                // Force a new UserId
                 TempData.Remove("user");
-                var model = new ShareAssignModel
-                {
-                    Description = description,
-                    Title = title,
-                    Url = url
-                };
                 return RedirectToAction("Index", model);
             }
             catch (Exception e)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, e);
             }
+        }
+
+        /// <summary>
+        /// If the Google User was prompted to agree to the permissions, then
+        /// the TokenResponse will include a RefreshToken which is suitable for
+        /// offline use. This is the TokenResponse to use for sending grades back.
+        /// Keep track of the UserId so we can look up the TokenResponse later.
+        /// </summary>
+        private async Task<bool> SaveOfflineToken(CancellationToken cancellationToken, ClassroomService classroomService, AuthorizationCodeWebApp.AuthResult result)
+        {
+            var userProfileRequest = classroomService.UserProfiles.Get("me");
+            var userProfile =
+                await userProfileRequest.ExecuteAsync(cancellationToken).ConfigureAwait(false);
+            var googleUser = await _db.GoogleUsers
+                .FindAsync(new object[] {userProfile.Id}, cancellationToken).ConfigureAwait(false);
+
+            // If there is no matching GoogleUser, then we need to make one
+            if (googleUser == null)
+            {
+                // If we don't have an offline Token, force a login and acceptance
+                if (string.IsNullOrEmpty(result.Credential.Token.RefreshToken))
+                {
+                    await result.Credential.RevokeTokenAsync(cancellationToken).ConfigureAwait(false);
+                    return false;
+                }
+
+                // Otherwise record a reference to the token
+                googleUser = new GoogleUser
+                {
+                    GoogleId = userProfile.Id,
+                    UserId = result.Credential.UserId
+                };
+                await _db.AddAsync(googleUser, cancellationToken).ConfigureAwait(false);
+                await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            // If there is a matching GoogleUser with a new Token, record it
+            else if (!googleUser.UserId.Equals(result.Credential.UserId,
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                googleUser.UserId = result.Credential.UserId;
+                _db.Update(googleUser);
+                await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+            }
+            return true;
         }
 
         /// <summary>
