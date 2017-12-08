@@ -244,7 +244,8 @@ namespace gc2lti_outcomes.Controllers
                                 {
                                     CourseId = ltiRequest.ContextId,
                                     CourseWorkId = ltiRequest.ResourceLinkId,
-                                    UserId = courseWork.CreatorUserId
+                                    StudentId = ltiRequest.UserId,
+                                    TeacherId = courseWork.CreatorUserId
                                 };
                                 ltiRequest.LisResultSourcedId =
                                     JsonConvert.SerializeObject(lisResultSourcedId, Formatting.None);

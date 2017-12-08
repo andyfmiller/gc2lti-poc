@@ -1,21 +1,42 @@
 ﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using gc2lti_outcomes.Models;
+using gc2lti_shared.Data;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Classroom.v1;
+using Google.Apis.Services;
 using LtiLibrary.AspNetCore.Extensions;
 using LtiLibrary.AspNetCore.Outcomes.v1;
+using LtiLibrary.NetCore.Lti.v1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 
 namespace gc2lti_outcomes.Controllers
 {
     [Route("[controller]")]
     public class OutcomesController : OutcomesControllerBase
     {
-        public IConfiguration Configuration { get; set; }
+        private IConfiguration Configuration { get; }
+        private Gc2LtiDbContext Db { get; }
 
-        public OutcomesController(IConfiguration config)
+        public OutcomesController(IConfiguration config, Gc2LtiDbContext db)
         {
             Configuration = config;
+            Db = db;
+        }
+
+        private string ClientId
+        {
+            get { return Configuration["Authentication:Google:ClientId"]; }
+        }
+
+        private string ClientSecret
+        {
+            get { return Configuration["Authentication:Google:ClientSecret"]; }
         }
 
         protected override Func<DeleteResultRequest, Task<DeleteResultResponse>> OnDeleteResultAsync 
@@ -39,7 +60,9 @@ namespace gc2lti_outcomes.Controllers
                 return response;
             }
 
-            // Delete the grade in Google Classroom
+            // Google Classroom does not support deleting a grade
+
+            response.StatusCode = StatusCodes.Status501NotImplemented;
 
             return response;
         }
@@ -56,7 +79,55 @@ namespace gc2lti_outcomes.Controllers
                 return response;
             }
 
-            // Read the grade in Google Classroom
+            // Read the grade from Google Classroom
+            try
+            {
+                var lisResultSourcedId = JsonConvert.DeserializeObject<LisResultSourcedId>(arg.LisResultSourcedId);
+                var googleUser = await Db.GoogleUsers.FindAsync(lisResultSourcedId.TeacherId);
+                var appFlow = new AppFlowMetadata(ClientId, ClientSecret, Db);
+                var token = await appFlow.Flow.LoadTokenAsync(googleUser.UserId, CancellationToken.None);
+                var credential = new UserCredential(appFlow.Flow, googleUser.UserId, token);
+
+                using (var classroomService = new ClassroomService(new BaseClientService.Initializer
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Google Classroom to LTI Service"
+                }))
+                {
+                    var courseWorkRequest = classroomService.Courses.CourseWork.Get
+                    (
+                        lisResultSourcedId.CourseId,
+                        lisResultSourcedId.CourseWorkId
+                    );
+                    var courseWork = await courseWorkRequest.ExecuteAsync();
+
+                    var submissionsRequest = classroomService.Courses.CourseWork.StudentSubmissions.List
+                    (
+                        lisResultSourcedId.CourseId,
+                        lisResultSourcedId.CourseWorkId
+                    );
+                    submissionsRequest.UserId = lisResultSourcedId.StudentId;
+                    var submissionsResponse = await submissionsRequest.ExecuteAsync();
+                    var submission = submissionsResponse.StudentSubmissions.FirstOrDefault();
+
+                    if (submission == null)
+                    {
+                        response.StatusCode = StatusCodes.Status404NotFound;
+                    }
+                    else
+                    {
+                        response.Result = new Result
+                        {
+                            SourcedId = arg.LisResultSourcedId,
+                            Score = submission.AssignedGrade / courseWork.MaxPoints
+                        };
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                response.StatusCode = StatusCodes.Status500InternalServerError;
+            }
 
             return response;
         }
@@ -74,6 +145,60 @@ namespace gc2lti_outcomes.Controllers
             }
 
             // Record the grade in Google Classroom
+            try
+            {
+                var lisResultSourcedId = JsonConvert.DeserializeObject<LisResultSourcedId>(arg.Result.SourcedId);
+                var googleUser = await Db.GoogleUsers.FindAsync(lisResultSourcedId.TeacherId);
+                var appFlow = new AppFlowMetadata(ClientId, ClientSecret, Db);
+                var token = await appFlow.Flow.LoadTokenAsync(googleUser.UserId, CancellationToken.None);
+                var credential = new UserCredential(appFlow.Flow, googleUser.UserId, token);
+
+                using (var classroomService = new ClassroomService(new BaseClientService.Initializer
+                {
+                    HttpClientInitializer = credential,
+                    ApplicationName = "Google Classroom to LTI Service"
+                }))
+                {
+                    var courseWorkRequest = classroomService.Courses.CourseWork.Get
+                    (
+                        lisResultSourcedId.CourseId,
+                        lisResultSourcedId.CourseWorkId
+                    );
+                    var courseWork = await courseWorkRequest.ExecuteAsync();
+
+                    var submissionsRequest = classroomService.Courses.CourseWork.StudentSubmissions.List
+                    (
+                        lisResultSourcedId.CourseId,
+                        lisResultSourcedId.CourseWorkId
+                    );
+                    submissionsRequest.UserId = lisResultSourcedId.StudentId;
+                    var submissionsResponse = await submissionsRequest.ExecuteAsync();
+                    var submission = submissionsResponse.StudentSubmissions.FirstOrDefault();
+
+                    if (submission == null)
+                    {
+                        response.StatusCode = StatusCodes.Status404NotFound;
+                    }
+                    else
+                    {
+                        submission.AssignedGrade = arg.Result.Score * courseWork.MaxPoints;
+
+                        var patchRequest = classroomService.Courses.CourseWork.StudentSubmissions.Patch
+                        (
+                            submission,
+                            submission.CourseId,
+                            submission.CourseWorkId,
+                            submission.Id
+                        );
+                        patchRequest.UpdateMask = "AssignedGrade";
+                        await patchRequest.ExecuteAsync();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                response.StatusCode = StatusCodes.Status500InternalServerError;
+            }
 
             return response;
         }
