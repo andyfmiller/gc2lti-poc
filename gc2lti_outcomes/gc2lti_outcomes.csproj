@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\google-api-dotnet-client\Src\Support\Google.Apis.Auth.AspMvcCore\Google.Apis.Auth.AspMvcCore.csproj" />
-    <ProjectReference Include="..\gc2lti_shared\gc2lti_shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

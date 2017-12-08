@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using gc2lti_outcomes.Data;
 using gc2lti_outcomes.Models;
-using gc2lti_shared.Data;
 using Google;
 using Google.Apis.Admin.Directory.directory_v1;
 using Google.Apis.Auth.OAuth2.AspMvcCore;
@@ -112,7 +112,7 @@ namespace gc2lti_outcomes.Controllers
 
             // Based on the data collected from Google, look up the correct key and secret
             ltiRequest.ConsumerKey = "12345";
-            var oauthSecret = "secret";
+            const string oauthSecret = "secret";
 
             // Sign the request
             ltiRequest.Signature = ltiRequest.SubstituteCustomVariablesAndGenerateSignature(oauthSecret);
@@ -185,7 +185,7 @@ namespace gc2lti_outcomes.Controllers
             }
         }
 
-        private async Task FillInContextInfo(CancellationToken cancellationToken, ClassroomService classroomService, 
+        private static async Task FillInContextInfo(CancellationToken cancellationToken, ClassroomService classroomService, 
             LtiRequest ltiRequest)
         {
             // Fill in the context (course) information
@@ -257,7 +257,7 @@ namespace gc2lti_outcomes.Controllers
             }
         }
 
-        private async Task FillInUserAndPersonInfo(CancellationToken cancellationToken, ClassroomService classroomService,
+        private static async Task FillInUserAndPersonInfo(CancellationToken cancellationToken, ClassroomService classroomService,
             LtiRequest ltiRequest)
         {
             // Fill in basic user and person information

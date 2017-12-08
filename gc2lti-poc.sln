@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.0
+VisualStudioVersion = 15.0.27130.2003
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Google.Apis.Auth.AspMvcCore", "..\google-api-dotnet-client\Src\Support\Google.Apis.Auth.AspMvcCore\Google.Apis.Auth.AspMvcCore.csproj", "{B6EDCE6A-B8C4-46AD-925B-305AD2D8F1DC}"
 EndProject
@@ -15,11 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gc2lti_shared", "gc2lti_shared\gc2lti_shared.csproj", "{D6D89A8E-5D6E-4FCE-9400-26CDD64517C6}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gc2lti_outcomes", "gc2lti_outcomes\gc2lti_outcomes.csproj", "{8A279B57-5C0E-42D9-9DC1-15768DB1E692}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gc2lti_catalog", "gc2lti_catalog\gc2lti_catalog.csproj", "{7905C8AD-5371-4604-8799-2A53EDD4BA2A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,18 +35,10 @@ Global
 		{D6E5213C-01FC-403B-A868-FDE4A955C2B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6E5213C-01FC-403B-A868-FDE4A955C2B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6E5213C-01FC-403B-A868-FDE4A955C2B3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D6D89A8E-5D6E-4FCE-9400-26CDD64517C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D6D89A8E-5D6E-4FCE-9400-26CDD64517C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D6D89A8E-5D6E-4FCE-9400-26CDD64517C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D6D89A8E-5D6E-4FCE-9400-26CDD64517C6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7905C8AD-5371-4604-8799-2A53EDD4BA2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7905C8AD-5371-4604-8799-2A53EDD4BA2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7905C8AD-5371-4604-8799-2A53EDD4BA2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7905C8AD-5371-4604-8799-2A53EDD4BA2A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

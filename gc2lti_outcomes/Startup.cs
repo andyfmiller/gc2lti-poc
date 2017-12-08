@@ -1,9 +1,9 @@
-﻿using gc2lti_shared.Data;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Gc2LtiDbContext = gc2lti_outcomes.Data.Gc2LtiDbContext;
 
 namespace gc2lti_outcomes
 {
@@ -52,8 +52,8 @@ namespace gc2lti_outcomes
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    "default",
+                    "{controller=Home}/{action=Index}/{id?}");
             });
         }
     }

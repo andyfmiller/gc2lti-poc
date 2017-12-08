@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using gc2lti_outcomes.Models;
-using gc2lti_shared.Data;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Classroom.v1;
 using Google.Apis.Services;
@@ -14,6 +13,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using AppFlowMetadata = gc2lti_outcomes.Data.AppFlowMetadata;
+using Gc2LtiDbContext = gc2lti_outcomes.Data.Gc2LtiDbContext;
 
 namespace gc2lti_outcomes.Controllers
 {

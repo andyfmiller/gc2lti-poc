@@ -10,7 +10,7 @@
 </head>
 <body>
     <form id="form" action="@Model.Url" method="post">
-        @foreach (var key in @Model.Parameters.AllKeys)
+        @foreach (var key in Model.Parameters.AllKeys)
         {
             <input type="hidden" name="@key" value="@Model.Parameters[key]" />
         }

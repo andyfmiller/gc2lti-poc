@@ -39,10 +39,7 @@
 
     <script type="text/javascript">
         function share(shareUrl, title, description) {
-            window.open("Home/Course"
-                + "?url=" + encodeURI(shareUrl)
-                + "&title=" + title
-                + "&description=" + description,
+            window.open(`Home/Course?url=${encodeURI(shareUrl)}&title=${title}&description=${description}`,
                 "_blank",
                 "toolbar=no,width=640,height=400,left=100,top=100");
             return false;

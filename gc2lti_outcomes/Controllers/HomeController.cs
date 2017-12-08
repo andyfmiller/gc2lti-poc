@@ -6,9 +6,8 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using gc2lti_outcomes.Data;
 using gc2lti_outcomes.Models;
-using gc2lti_shared.Data;
-using gc2lti_shared.Models;
 using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.AspMvcCore;
@@ -209,11 +208,11 @@ namespace gc2lti_outcomes.Controllers
                         Description = model.Description,
                         MaxPoints = model.MaxPoints,
                         WorkType = "ASSIGNMENT",
-                        Materials = new List<Material>()
+                        Materials = new List<Material>
                         {
-                            new Material()
+                            new Material
                             {
-                                Link = new Link()
+                                Link = new Link
                                 {
                                     Title = model.Title,
                                     Url = linkUrl
@@ -324,7 +323,7 @@ namespace gc2lti_outcomes.Controllers
         }
 
         // Return a nonce to differentiate assignments with the same URL within a course
-        private string CalculateNonce(int length)
+        private static string CalculateNonce(int length)
         {
             const string allowableCharacters = "abcdefghijklmnopqrstuvwxyz0123456789";
             var bytes = new byte[length];
