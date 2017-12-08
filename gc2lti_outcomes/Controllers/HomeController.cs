@@ -89,7 +89,7 @@ namespace gc2lti_outcomes.Controllers
                 {
                     if (!await SaveOfflineToken(cancellationToken, classroomService, result))
                     {
-                        return RedirectToAction("Index", model);
+                        return RedirectToAction("Course", model);
                     }
 
                     // Get the user's name
@@ -134,13 +134,13 @@ namespace gc2lti_outcomes.Controllers
             {
                 // Force a new UserId
                 TempData.Remove("user");
-                return RedirectToAction("Index", model);
+                return RedirectToAction("Course", model);
             }
             catch (TokenResponseException e) when (e.Message.Contains("invalid_grant"))
             {
                 // Force a new UserId
                 TempData.Remove("user");
-                return RedirectToAction("Index", model);
+                return RedirectToAction("Course", model);
             }
             catch (Exception e)
             {
@@ -304,9 +304,9 @@ namespace gc2lti_outcomes.Controllers
                 await Db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            // If there is a matching GoogleUser with a new Token, record it
-            else if (!googleUser.UserId.Equals(result.Credential.UserId,
-                StringComparison.InvariantCultureIgnoreCase))
+            // If there is a matching GoogleUser with a new offline Token, record it
+            else if (!googleUser.UserId.Equals(result.Credential.UserId) 
+                && result.Credential.Token.RefreshToken != null)
             {
                 googleUser.UserId = result.Credential.UserId;
                 Db.Update(googleUser);

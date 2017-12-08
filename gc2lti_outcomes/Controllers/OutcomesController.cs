@@ -173,8 +173,13 @@ namespace gc2lti_outcomes.Controllers
                     );
                     submissionsRequest.UserId = lisResultSourcedId.StudentId;
                     var submissionsResponse = await submissionsRequest.ExecuteAsync();
-                    var submission = submissionsResponse.StudentSubmissions.FirstOrDefault();
+                    if (submissionsResponse.StudentSubmissions == null)
+                    {
+                        response.StatusCode = StatusCodes.Status404NotFound;
+                        return response;
+                    }
 
+                    var submission = submissionsResponse.StudentSubmissions.FirstOrDefault();
                     if (submission == null)
                     {
                         response.StatusCode = StatusCodes.Status404NotFound;
