@@ -1,23 +1,24 @@
-﻿@model ShareAssignModel
+﻿@model gc2lti_catalog.Models.CourseSelectionModel
 @{
     ViewBag.Title = "Share to Classroom";
-    Layout = "_Layout";
+    ViewBag.PersonName = Model.PersonName;
 }
 
 <img class="center-block vertical-spacing" src="images/32x32_yellow_stroke_icon@1x.png" />
 <div class="text-center vertical-spacing">Share to Classroom</div>
-@using (Html.BeginForm("Confirm", "Share", FormMethod.Get))
+@using (Html.BeginForm("Confirm", "Home", FormMethod.Get))
 {
-    @Html.Hidden("url", Model.Url)
-    @Html.Hidden("title", Model.Title)
-    @Html.Hidden("description", Model.Description)
+    @Html.HiddenFor(m => m.PersonName)
+    @Html.HiddenFor(m => m.Url)
+    @Html.HiddenFor(m => m.Title)
+    @Html.HiddenFor(m => m.Description)
 
     <div class="form-group text-center vertical-spacing">
-        @Html.DropDownList("courseId", Model.CoursesList, "Choose class", new
-   {
-       @classs = "form-control",
-       onChange = "toggleSubmit()"
-   })
+        @Html.DropDownList("courseId", Model.Courses, "Choose class", new
+        {
+            @classs = "form-control",
+            onChange = "toggleSubmit()"
+        })
     </div>
 
     <div class="form-group text-right vertical-spacing">

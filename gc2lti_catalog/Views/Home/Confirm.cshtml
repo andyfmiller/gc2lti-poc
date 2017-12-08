@@ -1,13 +1,15 @@
-﻿@model ShareConfirmModel
+﻿@model gc2lti_catalog.Models.CourseWorkModel
 @{
-    ViewData["Title"] = "Confirm";
+    ViewBag.Title = "Confirm";
+    ViewBag.PersonName = Model.PersonName;
 }
 
 <h4>For @Model.CourseName - All Students</h4>
 
-@using (Html.BeginForm("Assign", "Share", FormMethod.Get, new { @class="form-horizontal", role="form"}))
+@using (Html.BeginForm("Assign", "Home", FormMethod.Get, new { @class="form-horizontal", role="form"}))
 {
     @Html.HiddenFor(m => m.CourseId)
+    @Html.HiddenFor(m => m.PersonName)
 
     <div class="form-group">
         <label for="title" class="control-label col-xs-2">Title</label>
