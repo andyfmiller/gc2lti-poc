@@ -1,6 +1,4 @@
-using System;
-
-namespace gc2lti.Models
+namespace gc2lti_outcomes.Models
 {
     public class ErrorViewModel
     {

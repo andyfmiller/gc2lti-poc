@@ -1,0 +1,44 @@
+﻿@model gc2lti_outcomes.Models.CourseWorkModel
+@{
+    ViewBag.Title = "Confirm";
+    ViewBag.PersonName = Model.PersonName;
+}
+
+<h4>For @Model.CourseName - All Students</h4>
+
+@using (Html.BeginForm("Assign", "Home", FormMethod.Get, new { @class="form-horizontal", role="form"}))
+{
+    @Html.HiddenFor(m => m.CourseId)
+    @Html.HiddenFor(m => m.PersonName)
+
+    <div class="form-group">
+        <label for="title" class="control-label col-xs-2">Title</label>
+        <div class="col-xs-10">
+            <input id="title" name="title" type="text" class="form-control" value="@Model.Title" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="description" class="control-label col-xs-2">Instructions</label>
+        <div class="col-xs-10">
+            <input id="description" name="description" class="form-control" value="@Model.Description" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="url" class="control-label col-xs-2">LTI Tool</label>
+        <div class="col-xs-10">
+            <input id="url" name="url" type="text" class="form-control" value="@Model.Url" />
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="maxPoints" class="control-label col-xs-2">MaxPoints</label>
+        <div class="col-xs-10">
+            <input id="maxPoints" name="maxPoints" type="number" class="form-control" value="@Model.MaxPoints" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-xs-offset-2 col-xs-10">
+            <button id="submit" type="submit" class="btn btn-primary">Assign</button>
+        </div>
+    </div>
+    
+}
