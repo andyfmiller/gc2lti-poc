@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gc2lti_shared", "gc2lti_sha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gc2lti_outcomes", "gc2lti_outcomes\gc2lti_outcomes.csproj", "{8A279B57-5C0E-42D9-9DC1-15768DB1E692}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "catalog_outcomes", "catalog_outcomes\catalog_outcomes.csproj", "{26B7C1F0-5AC9-4486-B503-8AE80C7858BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gc2lti_catalog", "gc2lti_catalog\gc2lti_catalog.csproj", "{7905C8AD-5371-4604-8799-2A53EDD4BA2A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,10 +47,10 @@ Global
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Release|Any CPU.Build.0 = Release|Any CPU
-		{26B7C1F0-5AC9-4486-B503-8AE80C7858BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{26B7C1F0-5AC9-4486-B503-8AE80C7858BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{26B7C1F0-5AC9-4486-B503-8AE80C7858BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{26B7C1F0-5AC9-4486-B503-8AE80C7858BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7905C8AD-5371-4604-8799-2A53EDD4BA2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7905C8AD-5371-4604-8799-2A53EDD4BA2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7905C8AD-5371-4604-8799-2A53EDD4BA2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7905C8AD-5371-4604-8799-2A53EDD4BA2A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
