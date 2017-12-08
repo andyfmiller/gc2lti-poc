@@ -27,7 +27,6 @@ namespace gc2lti_outcomes
             // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/app-state?tabs=aspnetcore2x
             services.AddSession();
 
-
             services.AddDbContext<Gc2LtiDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("Gc2LtiDbContext")));
         }

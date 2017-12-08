@@ -8,7 +8,9 @@ namespace gc2lti_outcomes.Models
         public string CourseId { get; set; }
         [JsonProperty("courseWorkId")]
         public string CourseWorkId { get; set; }
-        [JsonProperty("userId")]
-        public string UserId { get; set; }
+        [JsonProperty("studentId")]
+        public string StudentId { get; set; }
+        [JsonProperty("teacherId")]
+        public string TeacherId { get; set; }
     }
 }
