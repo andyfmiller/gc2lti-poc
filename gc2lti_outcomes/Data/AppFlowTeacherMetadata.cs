@@ -28,8 +28,7 @@ namespace gc2lti_outcomes.Data
                         ClassroomService.Scope.ClassroomCoursesReadonly,
                         ClassroomService.Scope.ClassroomProfileEmails,
                         ClassroomService.Scope.ClassroomProfilePhotos,
-                        ClassroomService.Scope.ClassroomRostersReadonly,
-                        DirectoryService.Scope.AdminDirectoryUserReadonly,
+                        ClassroomService.Scope.ClassroomRostersReadonly
                     },
                     DataStore = new EfDataStore(context)
                 });
