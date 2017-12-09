@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace gc2lti_outcomes.Data
 {
-    public class AppFlowMetadata : FlowMetadata
+    public class AppFlowTeacherMetadata : FlowMetadata
     {
-        public AppFlowMetadata(string clientId, string secret, Gc2LtiDbContext context)
+        public AppFlowTeacherMetadata(string clientId, string secret, Gc2LtiDbContext context)
         {
             Flow =
                 new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
@@ -22,7 +22,6 @@ namespace gc2lti_outcomes.Data
                     },
                     Scopes = new[]
                     {
-                        // Experiment with outcomes
                         ClassroomService.Scope.ClassroomCourseworkMe,
                         ClassroomService.Scope.ClassroomCourseworkStudents,
 
@@ -30,9 +29,7 @@ namespace gc2lti_outcomes.Data
                         ClassroomService.Scope.ClassroomProfileEmails,
                         ClassroomService.Scope.ClassroomProfilePhotos,
                         ClassroomService.Scope.ClassroomRostersReadonly,
-                        ClassroomService.Scope.ClassroomCourseworkMeReadonly,
-                        ClassroomService.Scope.ClassroomCourseworkStudentsReadonly,
-                        DirectoryService.Scope.AdminDirectoryUserReadonly
+                        DirectoryService.Scope.AdminDirectoryUserReadonly,
                     },
                     DataStore = new EfDataStore(context)
                 });
@@ -58,7 +55,7 @@ namespace gc2lti_outcomes.Data
         public override string AuthCallback
         {
             // This must match a Redirect URI for the Client ID you are using
-            get { return @"/AuthCallback"; }
+            get { return @"/TeacherAuthCallback"; }
         }
 
         public override IAuthorizationCodeFlow Flow { get; }

@@ -69,7 +69,7 @@ namespace gc2lti_outcomes.Controllers
         /// </summary>
         public async Task<IActionResult> Course(CancellationToken cancellationToken, CourseSelectionModel model)
         {
-            var result = await new AuthorizationCodeMvcApp(this, new AppFlowMetadata(ClientId, ClientSecret, Db))
+            var result = await new AuthorizationCodeMvcApp(this, new AppFlowTeacherMetadata(ClientId, ClientSecret, Db))
                 .AuthorizeAsync(cancellationToken)
                 .ConfigureAwait(false);
 
@@ -152,7 +152,7 @@ namespace gc2lti_outcomes.Controllers
         /// </summary>
         public async Task<IActionResult> Confirm(CancellationToken cancellationToken, CourseWorkModel model)
         {
-            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, Db);
+            var appFlow = new AppFlowTeacherMetadata(ClientId, ClientSecret, Db);
             var token = await appFlow.Flow.LoadTokenAsync(appFlow.GetUserId(this), cancellationToken);
             var credential = new UserCredential(appFlow.Flow, appFlow.GetUserId(this), token);
 
@@ -185,7 +185,7 @@ namespace gc2lti_outcomes.Controllers
         /// </summary>
         public async Task<IActionResult> Assign(CancellationToken cancellationToken, CourseWorkModel model)
         {
-            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, Db);
+            var appFlow = new AppFlowTeacherMetadata(ClientId, ClientSecret, Db);
             var token = await appFlow.Flow.LoadTokenAsync(appFlow.GetUserId(this), cancellationToken);
             var credential = new UserCredential(appFlow.Flow, appFlow.GetUserId(this), token);
 
@@ -242,7 +242,7 @@ namespace gc2lti_outcomes.Controllers
         /// <returns></returns>
         public async Task<IActionResult> View(CancellationToken cancellationToken, CourseWorkModel model)
         {
-            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, Db);
+            var appFlow = new AppFlowTeacherMetadata(ClientId, ClientSecret, Db);
             var token = await appFlow.Flow.LoadTokenAsync(appFlow.GetUserId(this), cancellationToken);
             var credential = new UserCredential(appFlow.Flow, appFlow.GetUserId(this), token);
 

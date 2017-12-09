@@ -85,7 +85,7 @@ namespace gc2lti_outcomes.Controllers
             {
                 var lisResultSourcedId = JsonConvert.DeserializeObject<LisResultSourcedId>(arg.LisResultSourcedId);
                 var googleUser = await Db.GoogleUsers.FindAsync(lisResultSourcedId.TeacherId);
-                var appFlow = new AppFlowMetadata(ClientId, ClientSecret, Db);
+                var appFlow = new AppFlowTeacherMetadata(ClientId, ClientSecret, Db);
                 var token = await appFlow.Flow.LoadTokenAsync(googleUser.UserId, CancellationToken.None);
                 var credential = new UserCredential(appFlow.Flow, googleUser.UserId, token);
 
@@ -150,7 +150,7 @@ namespace gc2lti_outcomes.Controllers
             // Record the grade in Google Classroom
             var lisResultSourcedId = JsonConvert.DeserializeObject<LisResultSourcedId>(arg.Result.SourcedId);
             var googleUser = await Db.GoogleUsers.FindAsync(lisResultSourcedId.TeacherId);
-            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, Db);
+            var appFlow = new AppFlowTeacherMetadata(ClientId, ClientSecret, Db);
             var token = await appFlow.Flow.LoadTokenAsync(googleUser.UserId, CancellationToken.None);
             var credential = new UserCredential(appFlow.Flow, googleUser.UserId, token);
 

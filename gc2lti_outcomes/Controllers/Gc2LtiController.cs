@@ -49,7 +49,7 @@ namespace gc2lti_outcomes.Controllers
             var clientId = _configuration["Authentication:Google:ClientId"];
             var secret = _configuration["Authentication:Google:ClientSecret"];
 
-            var result = await new AuthorizationCodeMvcApp(this, new AppFlowMetadata(clientId, secret, _context))
+            var result = await new AuthorizationCodeMvcApp(this, new AppFlowStudentMetadata(clientId, secret, _context))
                 .AuthorizeAsync(cancellationToken)
                 .ConfigureAwait(false);
 
