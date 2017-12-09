@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using gc2lti_outcomes.Data;
 using gc2lti_outcomes.Models;
 using Google;
@@ -38,11 +39,11 @@ namespace gc2lti_outcomes.Controllers
         /// Converts a simple GET request from Google Classroom into an LTI request
         /// </summary>
         [HttpGet("{nonce?}")]
-        public async Task<ActionResult> Index(CancellationToken cancellationToken, string url, string c)
+        public async Task<ActionResult> Index(CancellationToken cancellationToken, LinkModel model)
         {
             if (IsRequestFromWebPageThumbnail())
             {
-                return View("Thumbnail");
+                return View("Thumbnail", model);
             }
 
             var clientId = _configuration["Authentication:Google:ClientId"];
@@ -58,7 +59,7 @@ namespace gc2lti_outcomes.Controllers
             }
 
             // Check paramter
-            if (string.IsNullOrEmpty(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            if (string.IsNullOrEmpty(model.U) || !Uri.TryCreate(model.U, UriKind.Absolute, out var uri))
             {
                 return BadRequest("Missing tool URL.");
             }
@@ -77,7 +78,7 @@ namespace gc2lti_outcomes.Controllers
                     Url = uri,
 
                     // The ContextId is in the request
-                    ContextId = c
+                    ContextId = model.C
                 };
 
             try
@@ -86,7 +87,7 @@ namespace gc2lti_outcomes.Controllers
                 using (var classroomService = new ClassroomService(new BaseClientService.Initializer
                 {
                     HttpClientInitializer = result.Credential,
-                    ApplicationName = "Google Classroom to LTI Service"
+                    ApplicationName = "gc2lti"
                 }))
                 {
                     await FillInUserAndPersonInfo(cancellationToken, classroomService, ltiRequest);
@@ -99,7 +100,7 @@ namespace gc2lti_outcomes.Controllers
                 using (var directoryService = new DirectoryService(new BaseClientService.Initializer
                 {
                     HttpClientInitializer = result.Credential,
-                    ApplicationName = "Google Classroom to LTI Service"
+                    ApplicationName = "gc2lti"
                 }))
                 {
                     await FillInPersonSyncInfo(cancellationToken, directoryService, ltiRequest);
@@ -209,7 +210,7 @@ namespace gc2lti_outcomes.Controllers
             {
                 var courseWorkRequest = classroomService.Courses.CourseWork.List(ltiRequest.ContextId);
                 ListCourseWorkResponse courseWorkResponse = null;
-                var thisPageUrl = Request.GetDisplayUrl();
+                var thisPageUrl = HttpUtility.UrlDecode(Request.GetDisplayUrl());
                 do
                 {
                     if (courseWorkResponse != null)
@@ -274,17 +275,17 @@ namespace gc2lti_outcomes.Controllers
 
         private bool IsRequestFromWebPageThumbnail()
         {
-            if (!Request.Headers.TryGetValue("Referer", out var referer))
+            if (Request.Headers.TryGetValue("Referer", out var referer))
             {
-                return false;
+                if (!Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
+                {
+                    return refererUri.Host.Equals("www.google.com")
+                           && refererUri.Segments.Length > 1
+                           && refererUri.Segments[1].Equals("webpagethumbnail?");
+                }
             }
-            if (!Uri.TryCreate(referer, UriKind.Absolute, out var refererUri))
-            {
-                return false;
-            }
-            return refererUri.Host.Equals("www.google.com")
-                && refererUri.Segments.Length > 1
-                && refererUri.Segments[1].Equals("webpagethumbnail?");
+            return Request.Headers.ContainsKey("User-Agent") 
+                && Request.Headers["User-Agent"].ToString().Contains("Google Web Preview");
         }
 
         #endregion

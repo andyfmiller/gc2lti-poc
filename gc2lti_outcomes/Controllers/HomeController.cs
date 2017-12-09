@@ -200,8 +200,8 @@ namespace gc2lti_outcomes.Controllers
                 {
                     var nonce = CalculateNonce(8);
                     var linkUrl = IsRequestLocal()
-                            ? $"{Configuration["Localhost"]}/gc2lti/{nonce}?url={model.Url}&c={model.CourseId}"
-                            : $"{Configuration["Remotehost"]}/gc2lti/{nonce}?url={model.Url}&c={model.CourseId}";
+                            ? $"{Configuration["Localhost"]}/gc2lti/{nonce}?u={model.Url}&c={model.CourseId}&t={model.Title}"
+                            : $"{Configuration["Remotehost"]}/gc2lti/{nonce}?u={model.Url}&c={model.CourseId}&t={model.Title}";
                     var courseWork = new CourseWork
                     {
                         Title = model.Title,
