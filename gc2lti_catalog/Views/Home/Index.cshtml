@@ -1,0 +1,50 @@
+﻿@model gc2lti_catalog.Models.ResourceModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<h1>gc2lti-catalog is now running.</h1>
+
+<p>
+    <strong>Do not use this with actual students.</strong> This is a proof of concept
+    to illustrate a <a href="https://andyfmiller.com/2017/11/24/using-lti-tools-in-google-classroom/">series of blog posts</a>.
+    <strong>There is no protection of private student data.</strong>
+</p>
+
+<hr/>
+
+<p>
+    This is the only resource in this POC catalog. Click on
+    <a href="Share" title="Share to Classroom" onclick="share('@Model.Url', '@Model.Title', '@Model.Description');return false;">
+        Share to Classroom
+    </a> to start the process.
+</p>
+
+<div class="panel panel-primary">
+    <div class="panel-heading">
+        @Model.Title
+    </div>
+    <div class="panel-body">
+        @Model.Description
+    </div>
+    <div class="panel-footer">
+        <a href="Share" title="Share to Classroom"
+            onclick="share('@Model.Url', '@Model.Title', '@Model.Description');return false;"><img src="images/32x32_yellow_stroke_icon@1x.png"/> <span>Share to Classroom</span></a>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script type="text/javascript">
+        function share(shareUrl, title, description) {
+            window.open("Home/Course"
+                + "?url=" + encodeURI(shareUrl)
+                + "&title=" + title
+                + "&description=" + description,
+                "_blank",
+                "toolbar=no,width=640,height=400,left=100,top=100");
+            return false;
+        }
+    </script>
+
+}

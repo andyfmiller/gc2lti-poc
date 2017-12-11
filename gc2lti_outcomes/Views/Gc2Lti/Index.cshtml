@@ -1,0 +1,29 @@
+﻿@model LtiLibrary.NetCore.Lti.v1.LtiRequest
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@Model.ResourceLinkTitle</title>
+</head>
+<body>
+    <form id="form" action="@Model.Url" method="post">
+        @foreach (var key in Model.Parameters.AllKeys)
+        {
+            <input type="hidden" name="@key" value="@Model.Parameters[key]" />
+        }
+    </form>
+    
+<script src="/lib/jquery/dist/jquery.js"></script>
+
+<script>
+    $(function() {
+        $("#form").submit();
+    });
+</script>
+</body>
+</html>
+
+
