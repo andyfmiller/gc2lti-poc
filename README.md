@@ -16,17 +16,19 @@ which uses the [Google Classroom API](https://developers.google.com/classroom/) 
 [Google Directory API](https://developers.google.com/admin-sdk/directory/) to form a complete and valid LTI request.
 Then that request is signed and posted to the LTI Tool.
 
-Both web applications use .NET Core 2.0. Unfortunately, [Google.Apis.Auth.Mvc](https://www.nuget.org/packages/Google.Apis.Auth.Mvc/)
+[gc2lti_outcomes](https://github.com/andyfmiller/gc2lti-poc/tree/master/gc2lti_outcomes) is a single project that combines the catalog with gc2lti and adds support for sending LTI Outcomes back to Google Classroom. A version of this project is running on [Azure](http://gc2lti-outcomes.azurewebsites.net/).
+
+All 3 web applications use .NET Core 2.0. Unfortunately, [Google.Apis.Auth.Mvc](https://www.nuget.org/packages/Google.Apis.Auth.Mvc/)
 is [not compatible](https://github.com/google/google-api-dotnet-client/issues/933) with .NET Core 2.0 applications, so I used 
 [@buzallen](https://github.com/buzallen/google-api-dotnet-client/tree/master/Src/Support/Google.Apis.Auth.AspMvcCore)'s 
 replacement implementation.
 
-Read more about this POC in [Using LTI Tools in Google Classroom](https://andyfmiller.com/2017/11/24/using-lti-tools-in-google-classroom/).
+Read more about this POC in [Using LTI Tools in Google Classroom](https://andyfmiller.com/2017/11/24/using-lti-tools-in-google-classroom/) and [Sending LTI Outcomes to Google Classroom](https://andyfmiller.com/2017/12/12/sending-lti-outcomes-to-google-classroom/).
 
 ## QuickStart
 
-Both projects are compatible with Visual Studio Community 2017 and .NET Core 2.0. The [catalog](https://github.com/andyfmiller/gc2lti-poc/tree/master/catalog) 
-project should run as-is. The [gc2lti](https://github.com/andyfmiller/gc2lti-poc/tree/master/gc2lti) project has several prerequisites:
+All 3 projects are compatible with Visual Studio Community 2017 and .NET Core 2.0. The [catalog](https://github.com/andyfmiller/gc2lti-poc/tree/master/catalog) 
+project should run as-is. The [gc2lti](https://github.com/andyfmiller/gc2lti-poc/tree/master/gc2lti) and [gc2lti_outcomes](https://github.com/andyfmiller/gc2lti-poc/tree/master/gc2lti_outcomes) projects have several prerequisites:
 
 * A Google account (for you as the developer of the project).
 * A second Google account with Google Classroom enabled for testing. A G Suite for Education account is preferred, but this works with other account types with some degradation.
@@ -43,5 +45,6 @@ project should run as-is. The [gc2lti](https://github.com/andyfmiller/gc2lti-poc
     "Authentication:Google:ClientSecret": "YOUR SECRET"
   }
   ```
+  3. Repeat for the **gc2lti_outcomes** project.
 
-Both projects should run now.
+All 3 projects should run now.
