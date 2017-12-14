@@ -47,28 +47,25 @@ project should run as-is. The [gc2lti](https://github.com/andyfmiller/gc2lti-poc
 
 ### catalog/gc2lti
 
-* Visit the catalog home page
-* Navigate to Catalog > Resource
-* Click on Share with Classroom
-* Login to Google with an account that has the Classroom app and has at least one class (i.e. login as a teacher)
-* Follow the prompts to assign the resource to a class
-
-* Logout of the teacher account and login with a student account that is enrolled in the class above
-* Click on the link to launch the LTI tool
+1. Visit the catalog home page
+2. Navigate to Catalog > Resource
+3. Click on Share with Classroom
+4. Login to Google with an account that has the Classroom app and has at least one class (i.e. login as a teacher)
+5. Follow the prompts to assign the resource to a class
+6. Logout of the teacher account and login with a student account that is enrolled in the class above
+7. Click on the link to launch the LTI tool
 
 ### gc2lti-outcomes
 
-* Visit the gc2lti-outcomes home page
-* Click on Share with Classroom
-* Login to Google with an account that has the Classroom app and has at least one class (i.e. login as a teacher)
-* Follow the prompts to assign the resource to a class
-
-* Logout of the teacher account and login with a student account that is enrolled in the class above
-* Open the class above
-* Click on the link to launch the LTI Tool
-* Force an outcome to be sent from the LTI Tool
-* Switch back to the class UI and "Open" the assignment to see the grade
-
-* Logout of the student account and login with the teacher account
-* Open the class above
-* Click on the title of the assignment to see the grades
+1. Visit the gc2lti-outcomes home page
+2. Click on Share with Classroom
+3. Login to Google with an account that has the Classroom app and has at least one class (i.e. login as a teacher)
+4. Follow the prompts to assign the resource to a class
+5. Logout of the teacher account and login with a student account that is enrolled in the class above
+6. Open the class above
+7. Click on the link to launch the LTI Tool
+8. Force an outcome to be sent from the LTI Tool
+9. Switch back to the class UI and "Open" the assignment to see the grade
+10. Logout of the student account and login with the teacher account
+11. Open the class above
+12. Click on the title of the assignment to see the grades
