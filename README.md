@@ -44,3 +44,31 @@ project should run as-is. The [gc2lti](https://github.com/andyfmiller/gc2lti-poc
   }
   ```
 * If you are running the project on Azure, store the two secrets as environment variables.
+
+### catalog/gc2lti
+
+* Visit the catalog home page
+* Navigate to Catalog > Resource
+* Click on Share with Classroom
+* Login to Google with an account that has the Classroom app and has at least one class (i.e. login as a teacher)
+* Follow the prompts to assign the resource to a class
+
+* Logout of the teacher account and login with a student account that is enrolled in the class above
+* Click on the link to launch the LTI tool
+
+### gc2lti-outcomes
+
+* Visit the gc2lti-outcomes home page
+* Click on Share with Classroom
+* Login to Google with an account that has the Classroom app and has at least one class (i.e. login as a teacher)
+* Follow the prompts to assign the resource to a class
+
+* Logout of the teacher account and login with a student account that is enrolled in the class above
+* Open the class above
+* Click on the link to launch the LTI Tool
+* Force an outcome to be sent from the LTI Tool
+* Switch back to the class UI and "Open" the assignment to see the grade
+
+* Logout of the student account and login with the teacher account
+* Open the class above
+* Click on the title of the assignment to see the grades
