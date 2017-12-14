@@ -53,7 +53,8 @@ project should run as-is. The [gc2lti](https://github.com/andyfmiller/gc2lti-poc
 4. Login to Google with an account that has the Classroom app and has at least one class (i.e. login as a teacher)
 5. Follow the prompts to assign the resource to a class
 6. Logout of the teacher account and login with a student account that is enrolled in the class above
-7. Click on the link to launch the LTI tool
+7. Open the class above
+8. Click on the link to launch the LTI tool
 
 ### gc2lti-outcomes
 
