@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Google.Apis.Admin.Directory.directory_v1" Version="1.31.1.1061" />
     <PackageReference Include="Google.Apis.Classroom.v1" Version="1.31.1.1069" />
+    <PackageReference Include="LtiLibrary.AspNetCore" Version="3.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.1" />
@@ -19,8 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\google-api-dotnet-client\Src\Support\Google.Apis.Auth.AspMvcCore\Google.Apis.Auth.AspMvcCore.csproj" />
-    <ProjectReference Include="..\..\LTI\LtiLibrary\src\LtiLibrary.AspNetCore\LtiLibrary.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\LTI\LtiLibrary\src\LtiLibrary.NetCore\LtiLibrary.NetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

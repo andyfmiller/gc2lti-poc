@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Google.Apis.Auth.AspMvcCore", "..\google-api-dotnet-client\Src\Support\Google.Apis.Auth.AspMvcCore\Google.Apis.Auth.AspMvcCore.csproj", "{B6EDCE6A-B8C4-46AD-925B-305AD2D8F1DC}"
 EndProject
@@ -16,10 +16,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gc2lti_outcomes", "gc2lti_outcomes\gc2lti_outcomes.csproj", "{8A279B57-5C0E-42D9-9DC1-15768DB1E692}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LtiLibrary.NetCore", "..\LTI\LtiLibrary\src\LtiLibrary.NetCore\LtiLibrary.NetCore.csproj", "{5F65F585-69B0-4872-BF4A-002FC9F4E183}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LtiLibrary.AspNetCore", "..\LTI\LtiLibrary\src\LtiLibrary.AspNetCore\LtiLibrary.AspNetCore.csproj", "{9BF44911-F703-464F-90C5-D949169E65C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,14 +39,6 @@ Global
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A279B57-5C0E-42D9-9DC1-15768DB1E692}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5F65F585-69B0-4872-BF4A-002FC9F4E183}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F65F585-69B0-4872-BF4A-002FC9F4E183}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5F65F585-69B0-4872-BF4A-002FC9F4E183}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5F65F585-69B0-4872-BF4A-002FC9F4E183}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9BF44911-F703-464F-90C5-D949169E65C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9BF44911-F703-464F-90C5-D949169E65C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9BF44911-F703-464F-90C5-D949169E65C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9BF44911-F703-464F-90C5-D949169E65C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
