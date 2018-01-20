@@ -190,6 +190,7 @@ namespace gc2lti_outcomes.Controllers
                 else
                 {
                     submission.AssignedGrade = arg.Result.Score * courseWork.MaxPoints;
+                    submission.DraftGrade = submission.AssignedGrade;
 
                     var patchRequest = classroomService.Courses.CourseWork.StudentSubmissions.Patch
                     (
@@ -198,7 +199,7 @@ namespace gc2lti_outcomes.Controllers
                         submission.CourseWorkId,
                         submission.Id
                     );
-                    patchRequest.UpdateMask = "AssignedGrade";
+                    patchRequest.UpdateMask = "AssignedGrade,DraftGrade";
                     await patchRequest.ExecuteAsync();
                     response.StatusDescription = $"Score={arg.Result.Score}, AssignedGrade={submission.AssignedGrade}.";
                 }
