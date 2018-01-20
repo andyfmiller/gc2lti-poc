@@ -11,6 +11,7 @@ using Google.Apis.Admin.Directory.directory_v1;
 using Google.Apis.Auth.OAuth2.AspMvcCore;
 using Google.Apis.Classroom.v1;
 using Google.Apis.Classroom.v1.Data;
+using Google.Apis.Requests;
 using Google.Apis.Services;
 using LtiLibrary.NetCore.Common;
 using LtiLibrary.NetCore.Lis.v1;
@@ -106,6 +107,12 @@ namespace gc2lti_outcomes.Controllers
                     await FillInPersonSyncInfo(cancellationToken, directoryService, ltiRequest);
                 }
             }
+            catch (GoogleApiException ex) when (ex.Error.Code == 403)
+            {
+                // Insufficient permissions. Force the user to accept the terms again.
+                await result.Credential.RevokeTokenAsync(cancellationToken).ConfigureAwait(false);
+                return RedirectToAction("Index", model);
+            }
             catch (Exception e)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, e);
@@ -177,11 +184,11 @@ namespace gc2lti_outcomes.Controllers
                 {
                     await classroomService.Courses.Teachers.Get(ltiRequest.ContextId, ltiRequest.UserId)
                         .ExecuteAsync(cancellationToken).ConfigureAwait(false);
-                    ltiRequest.SetRoles(new List<Role> { Role.Instructor });
+                    ltiRequest.SetRoles(new List<Enum> { ContextRole.Instructor });
                 }
                 catch (GoogleApiException ex) when (ex.Error.Code == 404)
                 {
-                    ltiRequest.SetRoles(new List<Role> { Role.Learner });
+                    ltiRequest.SetRoles(new List<Enum> { ContextRole.Learner });
                 }
             }
         }
