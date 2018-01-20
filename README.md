@@ -44,6 +44,7 @@ project should run as-is. The [gc2lti](https://github.com/andyfmiller/gc2lti-poc
   }
   ```
 * If you are running the project on Azure, store the two secrets as environment variables.
+* None of the projects require a database.
 
 Once you have the projects configured and running, follow these steps to assign, launch, and--in the case of gc2lti-outcomes--record a grade.
 
