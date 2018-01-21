@@ -137,6 +137,7 @@ namespace gc2lti_outcomes.Controllers
 
         private async Task<ReplaceResultResponse> ReplaceResultAsync(ReplaceResultRequest arg)
         {
+            // Authenticate the LTI Request
             var response = new ReplaceResultResponse();
 
             var ltiRequest = await Request.ParseLtiRequestAsync();
@@ -147,19 +148,23 @@ namespace gc2lti_outcomes.Controllers
                 return response;
             }
 
-            // Record the grade in Google Classroom
+            // Lookup the "offline" TokenResponse for the TeacherId
             var lisResultSourcedId = JsonConvert.DeserializeObject<LisResultSourcedId>(arg.Result.SourcedId);
             var googleUser = await Db.GoogleUsers.FindAsync(lisResultSourcedId.TeacherId);
             var appFlow = new AppFlowTeacherMetadata(ClientId, ClientSecret, Db);
             var token = await appFlow.Flow.LoadTokenAsync(googleUser.UserId, CancellationToken.None);
+
+            // Using the TokenResponse, create a UserCredential for the teacher
             var credential = new UserCredential(appFlow.Flow, googleUser.UserId, token);
 
+            // Using the teacher's UserCredential, create an instance of the ClassroomService
             using (var classroomService = new ClassroomService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
                 ApplicationName = "gc2lti"
             }))
             {
+                // Using the ClassroomService, get the CourseWork for the assignment
                 var courseWorkRequest = classroomService.Courses.CourseWork.Get
                 (
                     lisResultSourcedId.CourseId,
@@ -167,6 +172,7 @@ namespace gc2lti_outcomes.Controllers
                 );
                 var courseWork = await courseWorkRequest.ExecuteAsync();
 
+                // Then get the student's StudentSubmission
                 var submissionsRequest = classroomService.Courses.CourseWork.StudentSubmissions.List
                 (
                     lisResultSourcedId.CourseId,
@@ -180,8 +186,9 @@ namespace gc2lti_outcomes.Controllers
                     response.StatusDescription = "Submission was found.";
                     return response;
                 }
-
                 var submission = submissionsResponse.StudentSubmissions.FirstOrDefault();
+
+                // Set the AssignedGrade and DraftGrade
                 if (submission == null)
                 {
                     response.StatusCode = StatusCodes.Status404NotFound;
