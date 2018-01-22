@@ -183,7 +183,7 @@ namespace gc2lti_outcomes.Controllers
                 if (submissionsResponse.StudentSubmissions == null)
                 {
                     response.StatusCode = StatusCodes.Status404NotFound;
-                    response.StatusDescription = "Submission was found.";
+                    response.StatusDescription = "Submission was not found.";
                     return response;
                 }
                 var submission = submissionsResponse.StudentSubmissions.FirstOrDefault();
@@ -192,7 +192,7 @@ namespace gc2lti_outcomes.Controllers
                 if (submission == null)
                 {
                     response.StatusCode = StatusCodes.Status404NotFound;
-                    response.StatusDescription = "Submission was found.";
+                    response.StatusDescription = "Submission was not found.";
                 }
                 else
                 {
