@@ -6,12 +6,12 @@ using Microsoft.Extensions.Configuration;
 namespace gc2lti_outcomes.Controllers
 {
     [Route("[controller]")]
-    public class StudentAuthCallbackController : Google.Apis.Auth.OAuth2.AspMvcCore.Controllers.AuthCallbackController
+    public class AuthCallbackController : Google.Apis.Auth.OAuth2.AspMvcCore.Controllers.AuthCallbackController
     {
         private readonly IConfiguration _configuration;
         private readonly Gc2LtiDbContext _context;
 
-        public StudentAuthCallbackController(IConfiguration config, Gc2LtiDbContext context)
+        public AuthCallbackController(IConfiguration config, Gc2LtiDbContext context)
         {
             _configuration = config;
             _context = context;
@@ -24,7 +24,7 @@ namespace gc2lti_outcomes.Controllers
                 var clientId = _configuration["Authentication:Google:ClientId"];
                 var clientSecret = _configuration["Authentication:Google:ClientSecret"];
 
-                return new AppFlowStudentMetadata(clientId, clientSecret, _context);
+                return new AppFlowMetadata(clientId, clientSecret, _context);
             }
         }
     }

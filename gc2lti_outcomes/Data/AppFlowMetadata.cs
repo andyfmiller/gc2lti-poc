@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace gc2lti_outcomes.Data
 {
-    public class AppFlowTeacherMetadata : FlowMetadata
+    public class AppFlowMetadata : FlowMetadata
     {
-        public AppFlowTeacherMetadata(string clientId, string secret, Gc2LtiDbContext context)
+        public AppFlowMetadata(string clientId, string secret, Gc2LtiDbContext context)
         {
             Flow =
                 new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
@@ -23,12 +23,15 @@ namespace gc2lti_outcomes.Data
                     Scopes = new[]
                     {
                         ClassroomService.Scope.ClassroomCourseworkMe,
+                        ClassroomService.Scope.ClassroomCourseworkMeReadonly,
                         ClassroomService.Scope.ClassroomCourseworkStudents,
+                        ClassroomService.Scope.ClassroomCourseworkStudentsReadonly,
 
                         ClassroomService.Scope.ClassroomCoursesReadonly,
                         ClassroomService.Scope.ClassroomProfileEmails,
                         ClassroomService.Scope.ClassroomProfilePhotos,
-                        ClassroomService.Scope.ClassroomRostersReadonly
+                        ClassroomService.Scope.ClassroomRostersReadonly,
+                        DirectoryService.Scope.AdminDirectoryUserReadonly
                     },
                     DataStore = new EfDataStore(context)
                 });
@@ -42,7 +45,7 @@ namespace gc2lti_outcomes.Data
             // You can read more about the protocol in the following link:
             // https://developers.google.com/accounts/docs/OAuth2Login.
 
-            var user = controller.TempData.Peek("user");
+            var user = controller.TempData["user"];
             if (user == null)
             {
                 user = Guid.NewGuid();
@@ -54,7 +57,7 @@ namespace gc2lti_outcomes.Data
         public override string AuthCallback
         {
             // This must match a Redirect URI for the Client ID you are using
-            get { return @"/TeacherAuthCallback"; }
+            get { return @"/AuthCallback"; }
         }
 
         public override IAuthorizationCodeFlow Flow { get; }
