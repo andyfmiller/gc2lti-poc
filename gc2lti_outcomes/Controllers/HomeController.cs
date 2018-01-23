@@ -25,23 +25,23 @@ namespace gc2lti_outcomes.Controllers
 {
     public class HomeController : Controller
     {
-        public HomeController(IConfiguration config, Gc2LtiDbContext db)
-        {
-            Configuration = config;
-            Db = db;
-        }
+        private readonly IConfiguration _configuration;
+        private readonly Gc2LtiDbContext _context;
 
-        private IConfiguration Configuration { get; }
-        private Gc2LtiDbContext Db { get; }
+        public HomeController(IConfiguration config, Gc2LtiDbContext context)
+        {
+            _configuration = config;
+            _context = context;
+        }
 
         private string ClientId
         {
-            get { return Configuration["Authentication:Google:ClientId"]; }
+            get { return _configuration["Authentication:Google:ClientId"]; }
         }
 
         private string ClientSecret
         {
-            get { return Configuration["Authentication:Google:ClientSecret"]; }
+            get { return _configuration["Authentication:Google:ClientSecret"]; }
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace gc2lti_outcomes.Controllers
         /// </summary>
         public async Task<IActionResult> Course(CancellationToken cancellationToken, CourseSelectionModel model)
         {
-            var result = await new AuthorizationCodeMvcApp(this, new AppFlowTeacherMetadata(ClientId, ClientSecret, Db))
+            var result = await new AuthorizationCodeMvcApp(this, new AppFlowMetadata(ClientId, ClientSecret, _context))
                 .AuthorizeAsync(cancellationToken)
                 .ConfigureAwait(false);
 
@@ -77,6 +77,7 @@ namespace gc2lti_outcomes.Controllers
             {
                 return Redirect(result.RedirectUri);
             }
+            model.UserId = result.Credential.UserId;
 
             try
             {
@@ -152,16 +153,16 @@ namespace gc2lti_outcomes.Controllers
         /// </summary>
         public async Task<IActionResult> Confirm(CancellationToken cancellationToken, CourseWorkModel model)
         {
-            var appFlow = new AppFlowTeacherMetadata(ClientId, ClientSecret, Db);
-            var token = await appFlow.Flow.LoadTokenAsync(appFlow.GetUserId(this), cancellationToken);
-            var credential = new UserCredential(appFlow.Flow, appFlow.GetUserId(this), token);
+            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _context);
+            var token = await appFlow.Flow.LoadTokenAsync(model.UserId, cancellationToken);
+            var credential = new UserCredential(appFlow.Flow, model.UserId, token);
 
             try
             {
                 // Get the course name
                 using (var classroomService = new ClassroomService(new BaseClientService.Initializer
                 {
-                    HttpClientInitializer = credential, //result.Credential,
+                    HttpClientInitializer = credential,
                     ApplicationName = "gc2lti"
                 }))
                 {
@@ -185,9 +186,9 @@ namespace gc2lti_outcomes.Controllers
         /// </summary>
         public async Task<IActionResult> Assign(CancellationToken cancellationToken, CourseWorkModel model)
         {
-            var appFlow = new AppFlowTeacherMetadata(ClientId, ClientSecret, Db);
-            var token = await appFlow.Flow.LoadTokenAsync(appFlow.GetUserId(this), cancellationToken);
-            var credential = new UserCredential(appFlow.Flow, appFlow.GetUserId(this), token);
+            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _context);
+            var token = await appFlow.Flow.LoadTokenAsync(model.UserId, cancellationToken);
+            var credential = new UserCredential(appFlow.Flow, model.UserId, token);
 
             try
             {
@@ -200,8 +201,8 @@ namespace gc2lti_outcomes.Controllers
                 {
                     var nonce = CalculateNonce(8);
                     var linkUrl = IsRequestLocal()
-                            ? $"{Configuration["Localhost"]}/gc2lti/{nonce}?u={model.Url}&c={model.CourseId}&t={model.Title}"
-                            : $"{Configuration["Remotehost"]}/gc2lti/{nonce}?u={model.Url}&c={model.CourseId}&t={model.Title}";
+                            ? $"{_configuration["Localhost"]}/gc2lti/{nonce}?u={model.Url}&c={model.CourseId}&t={model.Title}"
+                            : $"{_configuration["Remotehost"]}/gc2lti/{nonce}?u={model.Url}&c={model.CourseId}&t={model.Title}";
                     var courseWork = new CourseWork
                     {
                         Title = model.Title,
@@ -242,9 +243,9 @@ namespace gc2lti_outcomes.Controllers
         /// <returns></returns>
         public async Task<IActionResult> View(CancellationToken cancellationToken, CourseWorkModel model)
         {
-            var appFlow = new AppFlowTeacherMetadata(ClientId, ClientSecret, Db);
-            var token = await appFlow.Flow.LoadTokenAsync(appFlow.GetUserId(this), cancellationToken);
-            var credential = new UserCredential(appFlow.Flow, appFlow.GetUserId(this), token);
+            var appFlow = new AppFlowMetadata(ClientId, ClientSecret, _context);
+            var token = await appFlow.Flow.LoadTokenAsync(model.UserId, cancellationToken);
+            var credential = new UserCredential(appFlow.Flow, model.UserId, token);
 
             try
             {
@@ -280,7 +281,7 @@ namespace gc2lti_outcomes.Controllers
             var userProfileRequest = classroomService.UserProfiles.Get("me");
             var userProfile =
                 await userProfileRequest.ExecuteAsync(cancellationToken).ConfigureAwait(false);
-            var googleUser = await Db.GoogleUsers
+            var googleUser = await _context.GoogleUsers
                 .FindAsync(new object[] { userProfile.Id }, cancellationToken).ConfigureAwait(false);
 
             // If there is no matching GoogleUser, then we need to make one
@@ -299,8 +300,8 @@ namespace gc2lti_outcomes.Controllers
                     GoogleId = userProfile.Id,
                     UserId = result.Credential.UserId
                 };
-                await Db.AddAsync(googleUser, cancellationToken).ConfigureAwait(false);
-                await Db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                await _context.AddAsync(googleUser, cancellationToken).ConfigureAwait(false);
+                await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
 
             // If there is a matching GoogleUser with a new offline Token, record it
@@ -308,8 +309,8 @@ namespace gc2lti_outcomes.Controllers
                 && result.Credential.Token.RefreshToken != null)
             {
                 googleUser.UserId = result.Credential.UserId;
-                Db.Update(googleUser);
-                await Db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                _context.Update(googleUser);
+                await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
             return true;
         }
