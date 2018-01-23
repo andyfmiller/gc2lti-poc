@@ -12,6 +12,7 @@
     @Html.HiddenFor(m => m.Url)
     @Html.HiddenFor(m => m.Title)
     @Html.HiddenFor(m => m.Description)
+    @Html.HiddenFor(m => m.UserId)
 
     <div class="form-group text-center vertical-spacing">
         @Html.DropDownList("courseId", Model.Courses, "Choose class", new

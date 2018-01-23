@@ -6,5 +6,6 @@ namespace gc2lti_outcomes.Models
     {
         public SelectList Courses { get; set; }
         public string PersonName { get; set; }
+        public string UserId { get; set; }
     }
 }

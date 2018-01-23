@@ -10,6 +10,7 @@
 {
     @Html.HiddenFor(m => m.CourseId)
     @Html.HiddenFor(m => m.PersonName)
+    @Html.HiddenFor(m => m.UserId)
 
     <div class="form-group">
         <label for="title" class="control-label col-xs-2">Title</label>
@@ -39,6 +40,5 @@
         <div class="col-xs-offset-2 col-xs-10">
             <button id="submit" type="submit" class="btn btn-primary">Assign</button>
         </div>
-    </div>
-    
+    </div>    
 }
