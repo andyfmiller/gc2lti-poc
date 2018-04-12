@@ -215,7 +215,7 @@ namespace gc2lti_outcomes.Controllers
                             {
                                 Link = new Link
                                 {
-                                    Title = model.Title,
+                                    Title = model.Title, // The title will be overwritten by Google's thumbnail generator
                                     Url = linkUrl
                                 }
                             }
